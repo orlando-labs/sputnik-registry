@@ -1,0 +1,14 @@
+[
+  {
+    "variant": "linux-x86_64-gnu-prebuilt-bytecode",
+    "sha256": "sha256:c2feefedb339eb03af064dad67db5639a07f82ff3be00e36b569ab4f4381cdb5",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "linux-x86_64-gnu-source-bytecode",
+    "sha256": "sha256:d7cf29a5e34bd85d14f506862419b6500eff10bcf3fc598cf4b0ef04488b3ae4",
+    "vm": true,
+    "lock": true
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "repository": "orlando-labs/torch",
+    "url": "https://github.com/orlando-labs/torch",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/sqlite3",
+    "url": "https://github.com/orlando-labs/sqlite3",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/orm",
+    "url": "https://github.com/orlando-labs/orm",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/orbit",
+    "url": "https://github.com/orlando-labs/orbit",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/plot",
+    "url": "https://github.com/orlando-labs/plot",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/pycall",
+    "url": "https://github.com/orlando-labs/pycall",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/rbcall",
+    "url": "https://github.com/orlando-labs/rbcall",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/progressbar",
+    "url": "https://github.com/orlando-labs/progressbar",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/notebook-ui",
+    "url": "https://github.com/orlando-labs/notebook-ui",
+    "visibility": "public",
+    "anonymous_source_access": true
+  },
+  {
+    "repository": "orlando-labs/system-io",
+    "url": "https://github.com/orlando-labs/system-io",
+    "visibility": "public",
+    "anonymous_source_access": true
+  }
+]

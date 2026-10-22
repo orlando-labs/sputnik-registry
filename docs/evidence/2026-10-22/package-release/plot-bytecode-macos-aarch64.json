@@ -1,0 +1,14 @@
+[
+  {
+    "variant": "macos-aarch64-prebuilt-bytecode",
+    "sha256": "sha256:e0485b82955e481023d470137e72618e2fb7cc2b2d1f654adc3c4ad83f7f676c",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "macos-aarch64-source-bytecode",
+    "sha256": "sha256:9959636a483a49abdf0520d02372138e8cacfca27c439a3b1b2856258a7ec295",
+    "vm": true,
+    "lock": true
+  }
+]

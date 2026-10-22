@@ -1,0 +1,13 @@
+{
+  "schema": "sputniktorch.registry-macos-verification.v1",
+  "version": "0.1.2",
+  "cpu_mps": true,
+  "mps_fallback": false,
+  "vm": true,
+  "full_native": true,
+  "missing_provider_rejected": true,
+  "wrong_libtorch_rejected": true,
+  "mps_sha256": "sha256:9b66e12e33822000f97ef0e0bff2b5657c4e995e7bf084dc11a3edc2616dc8a1",
+  "source_sha256": "sha256:9b004507a136165f3e910360cca1beb7d0b2c95a58ea21941b7db1d0d05e682c",
+  "slim_repack_without_dependencies": true
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "torch.registry-cuda-verification.v1",
+  "project": "cuda_registry_76d20dab6432",
+  "revision": "527894e13bddc34f5f39074ad808db51f8f950eae718f32df18be8d85952346f",
+  "installation": "d3346a7d29ffc4982ba192c3100bfc03",
+  "package": {
+    "name": "slowpilot/torch",
+    "version": "0.1.2",
+    "digest": "sha256:deb1645994782a29677163bb951efd3cfe2bd362b7ed1acce6cfae3ec6778655",
+    "variant": "linux-x86_64-gnu-cu130-prebuilt-source-runtime"
+  },
+  "run": {
+    "id": "bf47749b52b31af07937265ded334610",
+    "project": "cuda_registry_76d20dab6432",
+    "revision": "527894e13bddc34f5f39074ad808db51f8f950eae718f32df18be8d85952346f",
+    "sheet_id": "main",
+    "cell_id": "1",
+    "action": "run",
+    "runtime_id": "c34f6e522e69a1a5446b34ec3ef51d07",
+    "epoch": "ac79a2d7572b935b2c29c25e97e8338f",
+    "state": "succeeded",
+    "error": "",
+    "result": {
+      "cancelled": false,
+      "status": "dependent watch cells evaluated",
+      "environment_error": "",
+      "executing_cell": "",
+      "environment_stale": false,
+      "cells": [
+        {
+          "id": "1",
+          "source_revision": "2",
+          "ok": true,
+          "dirty": false,
+          "result": "\"PASS CUDA LibTorch 2.14.0 forward=14 gradient=[2,4,6] bytes=OK generator=OK device=cuda:0\"",
+          "error": "",
+          "output": [
+            {
+              "stream": "stdout",
+              "text": "PASS CUDA LibTorch 2.14.0 forward=14 gradient=[2,4,6] bytes=OK generator=OK device=cuda:0",
+              "order": "1"
+            },
+            {
+              "stream": "stdout",
+              "text": "\n",
+              "order": "2"
+            }
+          ],
+          "progress": []
+        }
+      ],
+      "unobserved_task_failures": []
+    },
+    "live": {
+      "cancelled": false,
+      "status": "",
+      "environment_error": "",
+      "executing_cell": "",
+      "environment_stale": false,
+      "cells": [
+        {
+          "id": "1",
+          "source_revision": "2",
+          "ok": false,
+          "dirty": true,
+          "result": "",
+          "error": "",
+          "output": [
+            {
+              "stream": "stdout",
+              "text": "PASS CUDA LibTorch 2.14.0 forward=14 gradient=[2,4,6] bytes=OK generator=OK device=cuda:0",
+              "order": "1"
+            },
+            {
+              "stream": "stdout",
+              "text": "\n",
+              "order": "2"
+            }
+          ],
+          "progress": []
+        }
+      ],
+      "unobserved_task_failures": []
+    },
+    "presentation": "/home/slowpilot/sputnik-remote-core/state/runs/bf47749b52b31af07937265ded334610.bin",
+    "input_version": "0",
+    "execution_document": "{\"format\":\"sputnik-notebook\",\"version\":1,\"title\":\"Published Torch CUDA\",\"active_sheet\":\"main\",\"sheets\":[{\"id\":\"main\",\"title\":\"CUDA\",\"cells\":[{\"id\":\"1\",\"kind\":\"code\",\"source\":\"from slowpilot.torch.tensor.factories import tensor\\nfrom slowpilot.torch.backends import version, cuda_available?, cuda_device_count, synchronize\\nfrom slowpilot.torch.tensor.bytes import from_bytes\\nfrom slowpilot.torch.random.generator import Generator\\nfrom slowpilot.torch.errors import DeviceError\\n\\nraise ValueError(\\\"Expected LibTorch 2.14.0\\\") unless version().starts_with?(\\\"2.14.0\\\")\\nraise ValueError(\\\"CUDA backend is unavailable\\\") unless cuda_available?() and cuda_device_count() > 0\\nx = tensor([1.0, 2.0, 3.0], device: \\\"cuda:0\\\", requires_grad: true)\\nraise ValueError(\\\"Tensor was not placed on CUDA\\\") unless x.device.type == \\\"cuda\\\"\\nloss = x.square.sum\\nloss.backward!\\nraise ValueError(\\\"Incorrect CUDA forward result\\\") unless loss.item == 14.0\\nraise ValueError(\\\"Incorrect CUDA gradient\\\") unless x.grad.to_a == [2.0, 4.0, 6.0]\\nraise ValueError(\\\"CPU to CUDA transfer\\\") unless tensor([4.0]).to(device: \\\"cuda:0\\\").to_a == [4.0]\\nrejected = false\\ntry:\\n  tensor([1.0], device: \\\"cuda:63\\\")\\nrescue DeviceError:\\n  rejected = true\\nraise ValueError(\\\"CUDA device error did not retain its scoped class\\\") unless rejected\\nraw = from_bytes(\\\"abc\\\".bytes, device: \\\"cuda:0\\\")\\nraise ValueError(\\\"CUDA from_bytes placement or value\\\") unless raw.device.type == \\\"cuda\\\" and raw.to_a == [97, 98, 99]\\ncpu_random = Generator(seed: 42).randn!([4])\\ncuda_random = Generator(seed: 42).randn!([4], device: \\\"cuda:0\\\")\\nraise ValueError(\\\"CUDA generator placement or reproducibility\\\") unless cuda_random.device.type == \\\"cuda\\\" and cuda_random.to_a == cpu_random.to_a\\nsynchronize()\\nmessage = \\\"PASS CUDA LibTorch #{version()} forward=14 gradient=[2,4,6] bytes=OK generator=OK device=#{x.device}\\\"\\nprint message\\nmessage\\n\",\"mode\":\"manual\"}]}],\"modules\":[],\"auto_imports\":[]}",
+    "live_presentation": "/home/slowpilot/sputnik-remote-core/state/runs/bf47749b52b31af07937265ded334610.live.bin"
+  },
+  "verified": true
+}

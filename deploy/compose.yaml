@@ -1,0 +1,36 @@
+name: sputnik-registry
+x-common: &common
+  image: ${REGISTRY_IMAGE:?Set an immutable image reference in .env}
+  restart: unless-stopped
+  user: "10097:10097"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 256
+  mem_limit: 2g
+  environment:
+    MALLOC_ARENA_MAX: "2"
+  ulimits:
+    nofile: {soft: 4096, hard: 4096}
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  volumes:
+    - /md0/sputnik-registry/config:/etc/sputnik-registry:ro,z
+    - /md0/sputnik-registry/data:/var/lib/sputnik-registry:rw,z
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "5"}
+services:
+  web:
+    <<: *common
+    command: [serve]
+    ports:
+      - "192.168.1.97:18097:8080"
+  worker:
+    <<: *common
+    mem_limit: 512m
+    memswap_limit: 512m
+    command: [worker]
+    healthcheck: {disable: true}
+    depends_on:
+      web: {condition: service_healthy}

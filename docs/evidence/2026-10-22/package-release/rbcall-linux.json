@@ -1,0 +1,26 @@
+[
+  {
+    "variant": "linux-x86_64-gnu-prebuilt-bytecode",
+    "sha256": "sha256:a8b7be8c34da89f0601c3b84539f3a5acb2302160acb9773762ef78e2bb07180",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "linux-x86_64-gnu-prebuilt-source",
+    "sha256": "sha256:bc5b9dcf9752039dce280dc39ff1d23c4806ae23c154f00fd78a29694c517b15",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "linux-x86_64-gnu-source-bytecode",
+    "sha256": "sha256:e9057f03b90f4e0e228e485a48a742f3ade8cae76739eb1143cb0978eba820b8",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "linux-x86_64-gnu-source-source",
+    "sha256": "sha256:facffc2388ec87a0b3beabb0dfed8038d80bf5aedae760bb7646011932361681",
+    "vm": true,
+    "lock": true
+  }
+]

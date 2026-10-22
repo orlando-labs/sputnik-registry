@@ -1,0 +1,90 @@
+[
+  {
+    "module": "releasecheck.sqlite3",
+    "native_hash": "54481fdb6fb7c991b5665b800eace8c98568b19c0606c9847309d9c3605b4518",
+    "native_code_count": 694,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "macos",
+    "fixture": "sqlite3"
+  },
+  {
+    "module": "releasecheck.sqlite3_pool",
+    "native_hash": "2ccaf07a6c8f9c131a9d4ff4b58e57bb59158e19d157a4bd498b15ce0c49dfdf",
+    "native_code_count": 698,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "macos",
+    "fixture": "sqlite3-pool"
+  },
+  {
+    "module": "releasecheck.plot",
+    "native_hash": "0377c16035474b900ae18ebc924d3da073c7e82e7105a8c8183af976fe58c243",
+    "native_code_count": 648,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "macos",
+    "fixture": "plot"
+  },
+  {
+    "module": "releasecheck.orm",
+    "native_hash": "287becf7061137e4196eb7f11e94e840151c98dca9281906de83755e08ea338e",
+    "native_code_count": 1266,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "macos",
+    "fixture": "orm"
+  },
+  {
+    "module": "releasecheck.orm_pool",
+    "native_hash": "820dbd60ab590bcf40f1361fc9aa1d6c16c61664d8d1dd506fb369c2c5405217",
+    "native_code_count": 1171,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "macos",
+    "fixture": "orm-pool"
+  },
+  {
+    "module": "releasecheck.sqlite3",
+    "native_hash": "e3774b66d85d31ad7b3f30220f528abb58bd32af36b3370a54cb9fc099b725cc",
+    "native_code_count": 694,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "linux",
+    "fixture": "sqlite3"
+  },
+  {
+    "module": "releasecheck.plot",
+    "native_hash": "b8bf48c2bc35a5b9bc988dcbf9abef64e559b32169c5340121698c517f5bcc79",
+    "native_code_count": 648,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "linux",
+    "fixture": "plot"
+  },
+  {
+    "module": "releasecheck.orm",
+    "native_hash": "1c93e4a82effacfcbbdb58611bff4d4c45a12217b9c169d94645e9513f6b2d63",
+    "native_code_count": 1266,
+    "native_fallback_code_count": 0,
+    "vm_fallback_code_count": 0,
+    "native_vm_independent": true,
+    "native_full_coverage": true,
+    "platform": "linux",
+    "fixture": "orm"
+  }
+]

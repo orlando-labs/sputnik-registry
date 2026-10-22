@@ -1,0 +1,1 @@
+{"schema":"torch.registry-macos-verification.v1","version":"0.1.2","mps_sha256":"sha256:37f0c2899ecf9e714b53a1bd3893f6f30210420ccf87016d45e026267bf99fa6","source_sha256":"sha256:645c18ffbb76806e0796fb37281604e5d58ef4326cafcafe0da370fbc9aa8ceb","cpu_mps":true,"mps_fallback":false,"vm":true,"full_native":true,"missing_provider_rejected":true,"wrong_libtorch_rejected":true}

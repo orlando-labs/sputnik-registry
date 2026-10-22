@@ -1,0 +1,9 @@
+schema = "sputnik.packages.lock.v1"
+
+[[packages]]
+name = "slowpilot/sputniktorch"
+version = "0.1.2"
+variant = "linux-x86_64-gnu-cu130-prebuilt-source-runtime"
+digest = "sha256:1c20ebd5c83e52ed0c1d71406710b5910a18ebeaadbff606a0d7d80cdc63c8ea"
+source_kind = "registry"
+source = "https://registry.sputnik-lang.online"

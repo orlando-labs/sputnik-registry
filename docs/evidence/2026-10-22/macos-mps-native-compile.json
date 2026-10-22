@@ -1,0 +1,9 @@
+{
+  "schema": "sputnik.native.compile.v1",
+  "mode": "serial",
+  "optimization": "O2",
+  "cxx": "clang++",
+  "jobs": 1,
+  "partitions": 1,
+  "compile_link_ms": 14821
+}

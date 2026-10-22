@@ -1,0 +1,31 @@
+{
+  "upgraded": true,
+  "port": 18765,
+  "backup": "/home/slowpilot/sputnik-remote-core/backups/20261022-native",
+  "release": "/home/slowpilot/sputnik-remote-core/releases/20261022-native",
+  "health": {
+    "protocol": 1,
+    "agent_pid": 3272208,
+    "implementation": "sputnik",
+    "capabilities": [
+      "sheet_run",
+      "bundled_modules",
+      "project_revisions",
+      "reattach",
+      "stop",
+      "force_stop",
+      "gui_reconnect",
+      "live_presentation",
+      "revision_document",
+      "compact_registry",
+      "worker_grants",
+      "worker_environment",
+      "managed_environments",
+      "orphan_gc",
+      "dependency_management",
+      "cell_inputs",
+      "run_document"
+    ]
+  },
+  "token_preserved": true
+}

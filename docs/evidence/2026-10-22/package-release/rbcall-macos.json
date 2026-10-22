@@ -1,0 +1,26 @@
+[
+  {
+    "variant": "macos-aarch64-prebuilt-bytecode",
+    "sha256": "sha256:1edd040ba1e5c9947d4268715f39bc15f372f29786edfecf76c59a6b8fbcfa5d",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "macos-aarch64-prebuilt-source",
+    "sha256": "sha256:e7c122d33ad1fa5c504e5770fc245088c00838b286fedd9fb205bd3f32ce17bd",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "macos-aarch64-source-bytecode",
+    "sha256": "sha256:efa266680ea3453a73313b9d266f498dc050b537943d3aa7e1cb93468431894f",
+    "vm": true,
+    "lock": true
+  },
+  {
+    "variant": "macos-aarch64-source-source",
+    "sha256": "sha256:e7d5c077a8cdf8a0d0f34784cdc704a591940f9ed2b968a7c9f11c253072ead1",
+    "vm": true,
+    "lock": true
+  }
+]

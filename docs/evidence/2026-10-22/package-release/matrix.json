@@ -1,0 +1,1314 @@
+{
+  "schema": "sputnik.registry-package-release.v1",
+  "date": "2026-10-22",
+  "registry": "https://registry.sputnik-lang.online",
+  "package_count": 12,
+  "variant_count": 51,
+  "artifacts": [
+    {
+      "name": "slowpilot/notebook-ui",
+      "version": "0.1.0",
+      "variant": "bytecode",
+      "sha256": "sha256:6fc74e62b976d5ee73897399f8729e81bba97fe35882c409f82576e8940c198f",
+      "compressed_size": 28271,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/notebook-ui",
+      "version": "0.1.0",
+      "variant": "mixed",
+      "sha256": "sha256:d54ddb021dc3953d83f2c204cbf28b034d442928f0ce860edbfa4668c410418c",
+      "compressed_size": 14228,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/notebook-ui",
+      "version": "0.1.0",
+      "variant": "source",
+      "sha256": "sha256:d9e5bed70119c2702141921401e064b57be9cadb04e4ac8208aac924c016cb0c",
+      "compressed_size": 4227,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orbit",
+      "version": "1.0.0-rc.1",
+      "variant": "mixed",
+      "sha256": "sha256:fd51e1c8b2588ba6306adfb9b47acf76d132a2dfe2bbd4e24431df41fffa7f41",
+      "compressed_size": 177442,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orbit",
+      "version": "1.0.0-rc.1",
+      "variant": "source",
+      "sha256": "sha256:e15a445fdeb2adf633555c90a27776ead95a2b7ade12d6f274949f0e18bb8d63",
+      "compressed_size": 45947,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orbit-orm",
+      "version": "1.0.0-rc.1",
+      "variant": "bytecode",
+      "sha256": "sha256:9a4d9920f6489ba2dc4e8679de662d63e444ff07568827161a0d38d5ba2ad2fd",
+      "compressed_size": 15041,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orbit-orm",
+      "version": "1.0.0-rc.1",
+      "variant": "source",
+      "sha256": "sha256:f8f8a38058a2faac6c912e3cc98cbf9920d5e690467a0f2b99fb7d6bd7d75325",
+      "compressed_size": 9045,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orm",
+      "version": "0.1.0",
+      "variant": "mixed",
+      "sha256": "sha256:89236aeca8a264ab44a5cf5a1988c48d56be5eb5e52d3324f71a07ced4bd1a0d",
+      "compressed_size": 12199,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orm",
+      "version": "0.1.0",
+      "variant": "source",
+      "sha256": "sha256:03a01a09c72ec768c2409b3791603f07e9c0097535f7d68fa1b30e1e14b391e8",
+      "compressed_size": 11281,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orm-sqlite3",
+      "version": "0.1.0",
+      "variant": "bytecode",
+      "sha256": "sha256:8e0f454f8fbf73ac4f639c04d2c201bd9658efc9894661ac8b5a89f632c2115e",
+      "compressed_size": 43770,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orm-sqlite3",
+      "version": "0.1.0",
+      "variant": "mixed",
+      "sha256": "sha256:685e95bbe725c3270936e4d7d7b15fe80850aa44cbff5ca007cb90321aaa3a61",
+      "compressed_size": 39009,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/orm-sqlite3",
+      "version": "0.1.0",
+      "variant": "source",
+      "sha256": "sha256:eb803a71b74e9bc370aa28e9d9a5779bcbdfe5749b0dc478d11921445e6c66df",
+      "compressed_size": 8265,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-bytecode",
+      "sha256": "sha256:c2feefedb339eb03af064dad67db5639a07f82ff3be00e36b569ab4f4381cdb5",
+      "compressed_size": 259245,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-source",
+      "sha256": "sha256:d408d02df4e393b18e897e640e5f8044716676ba15c58db8d1d20467ed4d61a5",
+      "compressed_size": 57331,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-bytecode",
+      "sha256": "sha256:d7cf29a5e34bd85d14f506862419b6500eff10bcf3fc598cf4b0ef04488b3ae4",
+      "compressed_size": 247210,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-source",
+      "sha256": "sha256:19f1d7dc3ee14256f32cf6f5bc2f288be67f112340e53ab84976528611b628f9",
+      "compressed_size": 43785,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-bytecode",
+      "sha256": "sha256:e0485b82955e481023d470137e72618e2fb7cc2b2d1f654adc3c4ad83f7f676c",
+      "compressed_size": 254814,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-source",
+      "sha256": "sha256:7fcdba670ad7dcda28e4af13a3c9f15187952c9d0e0bd78a21f16cea00861b59",
+      "compressed_size": 53339,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-bytecode",
+      "sha256": "sha256:9959636a483a49abdf0520d02372138e8cacfca27c439a3b1b2856258a7ec295",
+      "compressed_size": 247196,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/plot",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-source",
+      "sha256": "sha256:22d5c8273d7df09ead48e987bf1510ef5afdba9f104604addb3cca6f6267dfd2",
+      "compressed_size": 43773,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/progressbar",
+      "version": "0.1.0",
+      "variant": "bytecode",
+      "sha256": "sha256:35fd79ccf712e3da30ed7bc7e6ec53ea171760c81d65f349e75ba619b1026bad",
+      "compressed_size": 13737,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/progressbar",
+      "version": "0.1.0",
+      "variant": "source",
+      "sha256": "sha256:471c5506a2233f0de8b696cca53a8eb74c5c2125d9ceb3d88f46d2767fb749af",
+      "compressed_size": 2761,
+      "target": {
+        "os": "any",
+        "arch": "any",
+        "min_os": "",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-bytecode",
+      "sha256": "sha256:7d50c0721ee3e210a266da100dfdf5b10a8690167b33b73af912202caa5158a6",
+      "compressed_size": 43789,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:4283b6fabf8d8e8e5d031fdbb32beaa1b0f38e54846224df962a068d2406d6ed",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-source",
+      "sha256": "sha256:33c51f2e65293055f8291658888a982a00b77f700d76d3a35fb9926ec89b2079",
+      "compressed_size": 31512,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:4283b6fabf8d8e8e5d031fdbb32beaa1b0f38e54846224df962a068d2406d6ed",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-bytecode",
+      "sha256": "sha256:ccbfdf90e1fe27aa05094c1fe20a3fcb87daa058417e10e8086c8311376a59c6",
+      "compressed_size": 22306,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:4283b6fabf8d8e8e5d031fdbb32beaa1b0f38e54846224df962a068d2406d6ed",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cpython-sdk",
+          "kind": "sdk",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:e6ec5b393c4cb4fdbab86319d571adfa255638a02e183de89421b76ac8b8a7d4",
+          "provider": "external",
+          "package": "",
+          "runtime": "cpython"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-source",
+      "sha256": "sha256:16627144a0587795bcd2eb68ca587195fc9b209b326d09e790e67ccfa3bbc298",
+      "compressed_size": 9546,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:4283b6fabf8d8e8e5d031fdbb32beaa1b0f38e54846224df962a068d2406d6ed",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cpython-sdk",
+          "kind": "sdk",
+          "version": "3.11.2",
+          "abi": "cpython-3.11.2-linux-x86_64-gnu",
+          "build_id": "sha256:e6ec5b393c4cb4fdbab86319d571adfa255638a02e183de89421b76ac8b8a7d4",
+          "provider": "external",
+          "package": "",
+          "runtime": "cpython"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-bytecode",
+      "sha256": "sha256:00ac060f3fd2e3ecc6f7a8672d5c5da790eb95c2e36301ab70dbbb0f01a30ff9",
+      "compressed_size": 41756,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:696ffa2cf9562522c387f7c2b3a990ef67e574df2d921822fe310ea35587cce0",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-source",
+      "sha256": "sha256:aef8176bc267ef67847a50577f5add5cc4ebb39d5f671bb98ac86ed134790218",
+      "compressed_size": 29445,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:696ffa2cf9562522c387f7c2b3a990ef67e574df2d921822fe310ea35587cce0",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-bytecode",
+      "sha256": "sha256:72aa5d101cce75486f58050352386684085b7872cf93929d23de928817ae2972",
+      "compressed_size": 22699,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:696ffa2cf9562522c387f7c2b3a990ef67e574df2d921822fe310ea35587cce0",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cpython-sdk",
+          "kind": "sdk",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:914f425d4c322516ca5560adc3947f489e95c4eef741e242d2b53a52b0bae6ac",
+          "provider": "external",
+          "package": "",
+          "runtime": "cpython"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/pycall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-source",
+      "sha256": "sha256:92775d306690b785c13c75842365d8d418648832abbc00a4cec0140d8154fb10",
+      "compressed_size": 9908,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cpython",
+          "kind": "runtime",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:696ffa2cf9562522c387f7c2b3a990ef67e574df2d921822fe310ea35587cce0",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cpython-sdk",
+          "kind": "sdk",
+          "version": "3.14.6",
+          "abi": "cpython-3.14.6-macos-aarch64",
+          "build_id": "sha256:914f425d4c322516ca5560adc3947f489e95c4eef741e242d2b53a52b0bae6ac",
+          "provider": "external",
+          "package": "",
+          "runtime": "cpython"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-bytecode",
+      "sha256": "sha256:a8b7be8c34da89f0601c3b84539f3a5acb2302160acb9773762ef78e2bb07180",
+      "compressed_size": 69884,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:b9b2ed86fe69fd5b0115a8893ade0423768444046d6a681ff2343e9869de654b",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-source",
+      "sha256": "sha256:bc5b9dcf9752039dce280dc39ff1d23c4806ae23c154f00fd78a29694c517b15",
+      "compressed_size": 57800,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:b9b2ed86fe69fd5b0115a8893ade0423768444046d6a681ff2343e9869de654b",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-bytecode",
+      "sha256": "sha256:e9057f03b90f4e0e228e485a48a742f3ade8cae76739eb1143cb0978eba820b8",
+      "compressed_size": 25250,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:b9b2ed86fe69fd5b0115a8893ade0423768444046d6a681ff2343e9869de654b",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cruby-sdk",
+          "kind": "sdk",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:2b00e02f7dde5aee59f375132fc20a5ec4869799810b78068cd8497bdc929c8a",
+          "provider": "external",
+          "package": "",
+          "runtime": "cruby"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-source",
+      "sha256": "sha256:facffc2388ec87a0b3beabb0dfed8038d80bf5aedae760bb7646011932361681",
+      "compressed_size": 12313,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:b9b2ed86fe69fd5b0115a8893ade0423768444046d6a681ff2343e9869de654b",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cruby-sdk",
+          "kind": "sdk",
+          "version": "3.1.2",
+          "abi": "cruby-3.1.2-linux-x86_64-gnu",
+          "build_id": "sha256:2b00e02f7dde5aee59f375132fc20a5ec4869799810b78068cd8497bdc929c8a",
+          "provider": "external",
+          "package": "",
+          "runtime": "cruby"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-bytecode",
+      "sha256": "sha256:1edd040ba1e5c9947d4268715f39bc15f372f29786edfecf76c59a6b8fbcfa5d",
+      "compressed_size": 58928,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:d350427fd138e9d21189876a27a7c21e5e282216c736006fb104259919a8c4c4",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-source",
+      "sha256": "sha256:e7c122d33ad1fa5c504e5770fc245088c00838b286fedd9fb205bd3f32ce17bd",
+      "compressed_size": 46929,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:d350427fd138e9d21189876a27a7c21e5e282216c736006fb104259919a8c4c4",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-bytecode",
+      "sha256": "sha256:efa266680ea3453a73313b9d266f498dc050b537943d3aa7e1cb93468431894f",
+      "compressed_size": 25625,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:d350427fd138e9d21189876a27a7c21e5e282216c736006fb104259919a8c4c4",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cruby-sdk",
+          "kind": "sdk",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:ef87364bca3d7ae338e7baf7220cf14f01b8a438571078d2ea9696212bb24e5d",
+          "provider": "external",
+          "package": "",
+          "runtime": "cruby"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/rbcall",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-source",
+      "sha256": "sha256:e7d5c077a8cdf8a0d0f34784cdc704a591940f9ed2b968a7c9f11c253072ead1",
+      "compressed_size": 12663,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "cruby",
+          "kind": "runtime",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:d350427fd138e9d21189876a27a7c21e5e282216c736006fb104259919a8c4c4",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "cruby-sdk",
+          "kind": "sdk",
+          "version": "4.0.5",
+          "abi": "cruby-4.0.5-macos-aarch64",
+          "build_id": "sha256:ef87364bca3d7ae338e7baf7220cf14f01b8a438571078d2ea9696212bb24e5d",
+          "provider": "external",
+          "package": "",
+          "runtime": "cruby"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/sqlite3",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-prebuilt-source",
+      "sha256": "sha256:75bd0c864f71171a8c52b835609e8deae3f33b626aacc0e4a176208943172bcd",
+      "compressed_size": 869153,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/sqlite3",
+      "version": "0.1.0",
+      "variant": "linux-x86_64-gnu-source-source",
+      "sha256": "sha256:82283829986c1405070fb18fbf5e9fc131dc7056d65acfc86f8dd63f11b7fb86",
+      "compressed_size": 2623052,
+      "target": {
+        "os": "linux",
+        "arch": "x86_64",
+        "min_os": "",
+        "libc": "gnu",
+        "min_libc": "2.36",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/sqlite3",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-source",
+      "sha256": "sha256:aa6fe4105c683cd2a6c829e642a8561a4d6843e9b96ebe1a9a1f532dc3a2a7e5",
+      "compressed_size": 793922,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/sqlite3",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-source",
+      "sha256": "sha256:39283a340c56941038fd96f5f0c8376dbf993765ce733ddc7c72297a89c93b2e",
+      "compressed_size": 2623045,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": []
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-bytecode",
+      "sha256": "sha256:285526fe6ad1180691bd5aabbff6eb6aaec35d78bd029da0fcf4dda170027122",
+      "compressed_size": 1999283,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-mixed",
+      "sha256": "sha256:c4878e731d69bf5addc90e71ace75505b922994177f784780a50c8520ef3ef79",
+      "compressed_size": 1991557,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-prebuilt-source",
+      "sha256": "sha256:ca0a461e1621f5027f142dd61c52daef87b881be4f076d9ec14197f46eeff4df",
+      "compressed_size": 1982085,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-bytecode",
+      "sha256": "sha256:832150615a5fbaacafb7aa632d0414d2dbb7abce259905ee6f25044d8754a5c3",
+      "compressed_size": 26983,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "sputnik-sdk",
+          "kind": "sdk",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:5eff40ce8f4f2d58547294c158ef4d33e7868e1611c52c39d1bb39dd2e71c830",
+          "provider": "external",
+          "package": "",
+          "runtime": "system-io-runtime"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-mixed",
+      "sha256": "sha256:90994d40de31e85dee862081e18e46b9eee14c82d2653e47a541badec4b307f8",
+      "compressed_size": 18836,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "sputnik-sdk",
+          "kind": "sdk",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:5eff40ce8f4f2d58547294c158ef4d33e7868e1611c52c39d1bb39dd2e71c830",
+          "provider": "external",
+          "package": "",
+          "runtime": "system-io-runtime"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/system-io",
+      "version": "0.1.0",
+      "variant": "macos-aarch64-source-source",
+      "sha256": "sha256:9d1945f704d4435efb07e56f3e5c1c515c4fa50b6f38bc1dfff760d78609d503",
+      "compressed_size": 9759,
+      "target": {
+        "os": "macos",
+        "arch": "aarch64",
+        "min_os": "26.0",
+        "libc": "",
+        "min_libc": "",
+        "compute_backend": "none",
+        "cuda_version": "",
+        "min_cuda_driver": ""
+      },
+      "native_requirements": [
+        {
+          "id": "system-io-runtime",
+          "kind": "runtime",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:92d750b4a1446cc10cd98bb02f7ed928424b2a2dde6df02c3abc9410cf648ba7",
+          "provider": "external",
+          "package": "",
+          "runtime": ""
+        },
+        {
+          "id": "sputnik-sdk",
+          "kind": "sdk",
+          "version": "0.1.0",
+          "abi": "sputnik-sdk-5426b509acd4e1640ed0ab06f2e585c8cc1603f57c4ece166146468ebe712fc9",
+          "build_id": "sha256:5eff40ce8f4f2d58547294c158ef4d33e7868e1611c52c39d1bb39dd2e71c830",
+          "provider": "external",
+          "package": "",
+          "runtime": "system-io-runtime"
+        }
+      ]
+    },
+    {
+      "name": "slowpilot/torch",
+      "version": "0.1.2",
+      "variant": "macos-aarch64-prebuilt-source-runtime",
+      "sha256": "sha256:37f0c2899ecf9e714b53a1bd3893f6f30210420ccf87016d45e026267bf99fa6"
+    },
+    {
+      "name": "slowpilot/torch",
+      "version": "0.1.2",
+      "variant": "macos-aarch64-source-source-none",
+      "sha256": "sha256:645c18ffbb76806e0796fb37281604e5d58ef4326cafcafe0da370fbc9aa8ceb"
+    },
+    {
+      "name": "slowpilot/torch",
+      "version": "0.1.2",
+      "variant": "linux-x86_64-gnu-cu130-prebuilt-source-runtime",
+      "sha256": "sha256:deb1645994782a29677163bb951efd3cfe2bd362b7ed1acce6cfae3ec6778655"
+    }
+  ],
+  "source_repositories": [
+    {
+      "name": "torch",
+      "url": "https://github.com/orlando-labs/torch",
+      "visibility": "public",
+      "commit": "dfab54aeac768fc625a34e95730aa3f056548c1d"
+    },
+    {
+      "name": "sqlite3",
+      "url": "https://github.com/orlando-labs/sqlite3",
+      "visibility": "public",
+      "commit": "e3eba2795ec76a0b4596e1d1f18480dd03e15928"
+    },
+    {
+      "name": "orm",
+      "url": "https://github.com/orlando-labs/orm",
+      "visibility": "public",
+      "commit": "28f75ccdf99bba1ea15430b2d059dfba519bed49"
+    },
+    {
+      "name": "orbit",
+      "url": "https://github.com/orlando-labs/orbit",
+      "visibility": "public",
+      "commit": "fdbdd4bb007c20bc533414a1f044dccbf107efe0"
+    },
+    {
+      "name": "plot",
+      "url": "https://github.com/orlando-labs/plot",
+      "visibility": "public",
+      "commit": "5ab57507dad1b2ecb0c386bb11fa1e3ce94e475b"
+    },
+    {
+      "name": "pycall",
+      "url": "https://github.com/orlando-labs/pycall",
+      "visibility": "public",
+      "commit": "f0adf9ee1abe5a5ddeb1a61a35ac87380094294f"
+    },
+    {
+      "name": "rbcall",
+      "url": "https://github.com/orlando-labs/rbcall",
+      "visibility": "public",
+      "commit": "49d519be5d0c842fad0b766bdabf03575565aa86"
+    },
+    {
+      "name": "progressbar",
+      "url": "https://github.com/orlando-labs/progressbar",
+      "visibility": "public",
+      "commit": "d1e048a70f5b79fcf70f0e071d66dc3ba7b8425d"
+    },
+    {
+      "name": "notebook-ui",
+      "url": "https://github.com/orlando-labs/notebook-ui",
+      "visibility": "public",
+      "commit": "9460385f84e5bdfcc10b0d523500c4e9a798fd34"
+    },
+    {
+      "name": "system-io",
+      "url": "https://github.com/orlando-labs/system-io",
+      "visibility": "public",
+      "commit": "ce0b189ac623268fa003df0f93f6022998ac2ee5"
+    }
+  ],
+  "public_verification": {
+    "small_artifact_downloads": 48,
+    "torch_macos_cpu_mps": true,
+    "torch_macos_source": true,
+    "torch_cuda_remote_core": true,
+    "retired_canonical_http_status": 404,
+    "retired_root_http_status": 404,
+    "registry_ready": true
+  }
+}

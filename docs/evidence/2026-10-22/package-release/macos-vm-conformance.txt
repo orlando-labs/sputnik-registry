@@ -1,0 +1,12 @@
+PASS progressbar VM
+PASS notebook-ui VM
+PASS sqlite3 VM
+PASS sqlite3-pool VM
+PASS sqlite3-backup VM
+PASS plot VM
+PASS orm VM
+PASS orm-pool VM
+PASS orbit VM
+PASS orbit-contract VM
+PASS orbit-orm VM
+PASS orm-pool native

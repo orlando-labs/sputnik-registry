@@ -1,0 +1,44 @@
+[
+  {
+    "variant": "macos-aarch64-prebuilt-bytecode",
+    "sha256": "sha256:285526fe6ad1180691bd5aabbff6eb6aaec35d78bd029da0fcf4dda170027122",
+    "vm": true,
+    "lock": true,
+    "native": false
+  },
+  {
+    "variant": "macos-aarch64-prebuilt-mixed",
+    "sha256": "sha256:c4878e731d69bf5addc90e71ace75505b922994177f784780a50c8520ef3ef79",
+    "vm": true,
+    "lock": true,
+    "native": false
+  },
+  {
+    "variant": "macos-aarch64-prebuilt-source",
+    "sha256": "sha256:ca0a461e1621f5027f142dd61c52daef87b881be4f076d9ec14197f46eeff4df",
+    "vm": true,
+    "lock": true,
+    "native": true
+  },
+  {
+    "variant": "macos-aarch64-source-bytecode",
+    "sha256": "sha256:832150615a5fbaacafb7aa632d0414d2dbb7abce259905ee6f25044d8754a5c3",
+    "vm": true,
+    "lock": true,
+    "native": false
+  },
+  {
+    "variant": "macos-aarch64-source-mixed",
+    "sha256": "sha256:90994d40de31e85dee862081e18e46b9eee14c82d2653e47a541badec4b307f8",
+    "vm": true,
+    "lock": true,
+    "native": false
+  },
+  {
+    "variant": "macos-aarch64-source-source",
+    "sha256": "sha256:9d1945f704d4435efb07e56f3e5c1c515c4fa50b6f38bc1dfff760d78609d503",
+    "vm": true,
+    "lock": true,
+    "native": true
+  }
+]

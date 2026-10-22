@@ -1,222 +1,84 @@
-# Roadmap Sputnik Registry
+# Roadmap и зависимости
 
-Статус: proposed.  
-Срез существующих зависимостей: 2026-07-26.
+Актуализация: 2026-10-20. Подробные задачи/проверки —
+[IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md).
 
-## 1. Что уже существует
+## 1. Профили и gates
 
-| Компонент | Состояние и применимость |
-|---|---|
-| Sputnik package tooling | `sputnik package-build/inspect/verify/install/publish`, reproducible `.sputnikpkg`, lockfile и filesystem registry реализованы |
-| Sputnik stdlib | HTTP, JSON, URL, SHA-256/HMAC, secure random, time и filesystem primitives доступны; Ed25519 пока отсутствует |
-| Ember | `1.0.0-rc.1`, routing, streaming, security, telemetry, lifecycle и ORM integration; canary и реальный 72-hour soak ещё открыты |
-| `sputnik-orm` | модели, validation, queries, transactions и pools; production adapter сейчас только SQLite |
-| `sqlite3-sputnik` | SQLite, transactions, prepared statements и task-aware pool |
+| Профиль | Состав | Gate |
+|---|---|---|
+| Existing local install | Directory/artifact/filesystem registry, shared home | Уже есть, сохранить regressions |
+| Private registry v1 | Sputnik/Orbit/ORM/SQLite, local CAS/jobs, bounded inspector, HTTP CLI, lock v1 | R0–R6 |
+| Managed public beta | Private stack + detached Ed25519 trust, CLI GitHub Device Flow/signup, edge/abuse controls, Orbit release evidence | R7–R8 |
+| Public native packages | Curated publishers, explicit client native trust, scanner и portable build policy | После native gates R8 |
+| Multi-instance | PostgreSQL/ORM adapter + private S3 + distributed lease parity | R9 |
+| Extended accounts | Другие providers, automatic recovery/linking, organizations, step-up admin | Отдельный follow-up |
+| Web UI | Read-only catalog, личный кабинет поверх JSON API | Optional follow-up, не dependency v1 |
 
-Это позволяет начать domain/API работу и собрать private single-node
-bootstrap. Полноценный public production registry без пакетов ниже не
-объявляется готовым.
+Single-node не обещает HA. PostgreSQL/S3 не являются условием private vertical
+slice или managed single-node beta. Public readiness требует собственного
+release evidence, даже если приложение работает на этом стеке.
 
-## 2. Необходимые, но пока несуществующие пакеты
+## 2. Уже реализованное: не заводить повторные проекты
 
-Все имена в таблице — рабочие названия будущих отдельных Sputnik-пакетов.
-Соответствующих готовых пакетов/репозиториев в текущем workspace нет. Не все
-они блокируют exact-version bootstrap.
+- Shared home, source directory install, module index, local override, native
+  preparation, uninstall и offline graph resolver.
+- HTTP/HTTPS, Ed25519 в `Signature`, SHA-256/HMAC, secure random, JSON, filesystem.
+- Orbit routing/streaming/lifecycle/strong params/security/telemetry.
+- SQLite pools/task-local transactions и ORM SQLite adapter.
 
-| Пакет | Приоритет | Зачем нужен | Минимальный критерий готовности |
-|---|---:|---|---|
-| `sputnik-package` | P0 | Безопасный parse/inspect/verify `.sputnikpkg` из Sputnik без shell-out в `sputnik` | bounded file/stream API, digest/signature verification, stable errors, hostile corpus и fuzz |
-| `sputnik-semver` | P1 | Сравнение версий и dependency ranges после exact-version bootstrap | SemVer 2.0 parse/compare, constraint algebra, conformance corpus |
-| `postgres-sputnik` | P1 | Надёжный multi-instance metadata store | TLS, prepared statements, transactions, cancellation, pool, PostgreSQL error mapping |
-| `sputnik-orm-postgres` | P1 | PostgreSQL adapter при обязательном использовании `sputnik-orm` | schema binding, CRUD/query compiler, transactions, pool integration, parity suite |
-| `sputnik-blobstore` | P1 | Единый порт для local CAS и object storage | bounded streaming put/get, quarantine/finalize, stat, delete-orphan, digest contract |
-| `s3-sputnik` | P1 | S3-compatible production storage | SigV4, TLS, multipart upload, retry/idempotency, checksums, presigned URL |
-| `sputnik-jobs` | P1 | Outbox workers, validation, cleanup и reconciliation | DB-backed leases, at-least-once delivery, retry/backoff, idempotency и dead-letter |
-| `opentelemetry-sputnik` | P2 | Экспорт registry/ORM/job traces и metrics из локального Ember telemetry | OTLP/HTTP exporter, batching/backpressure, redaction, bounded queue, shutdown flush |
-| `clamav-sputnik` | P2 | Admission scanning public packages, особенно native blobs | streaming daemon protocol, time/size limits, stable verdicts, fail-open запрещён |
-| `oidc-sputnik` | P2 | Безопасный публичный account lifecycle без собственной password базы | Authorization Code + PKCE, issuer/JWKS validation, nonce/state, key rotation |
-| `spdx-sputnik` | P2 | Нормализованные license expressions и policy | SPDX expression parser, current license list snapshot, validation/update process |
+Остались integration/limits/trust/lock/source contracts. `Digest` one-shot:
+streaming hash/durable file operations не возникают автоматически из наличия SHA-256.
 
-### Обязательность по профилям
+## 3. Новые зависимости и место реализации
 
-- Private exact-version bootstrap: `sputnik-package` и сетевой режим в `sputnik`
-  обязательны; `sputnik-semver` ещё не нужен.
-- Resolver с ranges/latest: дополнительно `sputnik-semver` либо эквивалентный
-  SemVer module в stdlib.
-- Public single-node beta: `sputnik-blobstore`, `sputnik-jobs`, `clamav-sputnik`,
-  Ed25519 в stdlib/toolchain и завершённый Ember soak.
-- Multi-instance production: все P0/P1 плюс telemetry exporter.
-- Public self-service accounts: дополнительно `oidc-sputnik`.
-- License policy/search: дополнительно `spdx-sputnik` и расширение package
-  manifest.
+| Возможность | Где реализовать | Когда |
+|---|---|---|
+| PackageReference/version compare | Shared toolchain core + facade fixtures | R1 |
+| Tar.gz archive, source/bytecode modes | Toolchain + pinned libarchive backend | R1a |
+| Platform variants/prebuilt shared libraries | Target probe, package model/store/loader, static binary inspector | R1b |
+| Native providers, runtime/SDK bundles | Core model/store/loader + sputniktorch recipes, default none | R1c |
+| Bounded inspection API | Reusable C++ core + `sputnik-package` native-only facade | R2, blocker server publish |
+| Atomic CAS/streaming hash IO | Private registry native adapter, затем возможное выделение | R2–R3 |
+| HTTP registry client | В `sputnik`, поверх existing transport/install | R4, без отдельного client package |
+| Application lock v1 с source/variant/digest | Existing package/store | R4 |
+| Migrations/jobs/outbox | Registry internal modules | R3–R5 |
+| Ed25519 release integration | Existing Signature + shared signed-payload contract | R7, primitive уже есть |
+| GitHub Device Flow/login/signup | Registry internal provider adapter + JSON API/CLI, existing HTTPS/crypto; без нового general OAuth package/frontend | R8, до public self-service |
+| PostgreSQL/ORM adapter | Новые packages `postgres-sputnik` и ORM adapter | R9 |
+| S3 | Новый adapter/client, private bucket и parity suite | R9 |
+| Malware scanner integration | Native admission adapter; package при повторном consumer | До public native |
+| OIDC/OTLP/SPDX | Отдельные packages при соответствующей продуктовой задаче | После v1 |
 
-`redis-sputnik`, отдельный search-engine client и message broker намеренно не
-являются обязательными: rate limits, outbox и начальный search должны работать
-на основной базе. Их можно добавить только после измеренного bottleneck.
+Названия будущих packages — рабочие. Наличие записи в roadmap не означает
+наличия библиотеки. General `sputnik-semver` не блокирует v1: нужен strict
+parse/compare уже существующего exact/latest режима, ranges отложены.
+General `sputnik-jobs`, `sputnik-blobstore`, `sputnik-migrate` не обязательны
+до появления второго потребителя. Redis, broker и внешний search не требуются.
 
-## 3. Что означали спорные рабочие названия
+## 4. Что заменено относительно июльского baseline
 
-### `sputnik-semver`
+- M0–M5 заменены R0–R9 с code locations и проверяемыми exit gates.
+- Не нужно реализовывать Ed25519/TLS с нуля.
+- Exact/latest install строится на нынешнем store; application lock v1
+  расширяется source fields на месте.
+- Artifact/manifest — tar.gz v1 с source/bytecode modules. Text prototype
+  заменяется без legacy reader; prototype artifacts/locks пересоздаются.
+  До первого фактического применения breaking changes допустимы в v1.
+  Подписи detached, keyring explicit.
+- Finalize blob предшествует published DB transaction.
+- Rejected/expired/cancelled sessions освобождают version reservation.
+- Immutable bytes не дают оснований обходить quarantine через public CDN CAS URL.
+- Current short-import ecosystem вводится через curated grants без массового rename.
 
-Это маленькая pure-библиотека для:
+## 5. Platform binaries входят в v1
 
-- разбора `1.2.3`, prerelease и build metadata;
-- стабильного сравнения версий;
-- проверки constraints вроде exact, caret, tilde и ranges;
-- выбора подходящей версии resolver.
-
-Registry может хранить и отдавать exact opaque versions без неё. Она нужна
-только когда `sputnik` должен выбрать «последнюю совместимую» версию и проверить
-dependency ranges. Поэтому пакет понижен с P0 до P1. Если SemVer станет
-частью языка, рабочее имя `sputnik-semver` исчезает, а API переезжает в stdlib;
-важен общий contract и conformance corpus, а не отдельный repository.
-
-### Миграции вместо `sputnik-migrate`
-
-Registry нужны версионированные изменения database schema: создать таблицу,
-добавить индекс, выполнить backfill и знать, какая версия schema установлена.
-Но это не означает, что уже нужен общий пакет `sputnik-migrate`.
-
-На первом этапе checksummed SQL migrations и маленький runner живут внутри
-Sputnik Registry. Выделение reusable package оправдано только после появления
-второго Sputnik-сервиса с теми же требованиями.
-
-### Сетевой клиент вместо `sputnik-registry-client`
-
-Под этим именем подразумевалась логическая часть, которая:
-
-- обращается к index API;
-- публикует artifact;
-- скачивает `publisher/package_name`;
-- проверяет SHA-256;
-- пишет registry origin и digest в lockfile.
-
-Это не зависимость registry server. Поскольку существующий `sputnik` написан
-внутри toolchain и уже владеет локальными `package-*` командами, сетевую
-поддержку правильнее реализовать прямо в `sputnik`. Отдельный
-`sputnik-registry-client` package из roadmap удалён.
-
-### Ed25519
-
-Ed25519 — алгоритм цифровой подписи, а не шифрования. Он является частью
-базовой цепочки доверия формата `.sputnikpkg`, поэтому отдельный
-`ed25519-sputnik` создавал бы bootstrap dependency. Решение: добавить Ed25519 в
-crypto surface Sputnik stdlib/core, дать package tooling тот же примитив и
-зафиксировать signature format, key id, keyring и rotation в toolchain.
-
-## 4. Изменения, нужные в самом Sputnik toolchain
-
-Это не application packages и потому отслеживаются отдельно:
-
-1. зафиксировать `publisher/package_name` как default reference и curated
-   `package_name` как unscoped reference;
-2. разбирать scoped reference на два безопасных компонента до filesystem
-   mapping; текущий `safe_registry_component` не принимает `/`;
-3. поддержать тот же reference в manifest, dependency keys, artifacts и
-   lockfiles; оставить module names без `/` и проверять `publisher.` prefix
-   для modules scoped package;
-4. сделать версию manifest/package format явной;
-5. определить exact-version network registry protocol и конфигурацию registry
-   sources прямо в `sputnik`;
-6. обеспечить lockfile pinning по canonical reference, source registry,
-   version и artifact digest;
-7. добавить Ed25519 в stdlib/core и package tooling, затем заменить dev
-   signature trust model с key id и rotation;
-8. после bootstrap формализовать dependency constraints и подключить SemVer;
-9. добавить metadata: license, repository URL, Sputnik compatibility.
-
-До согласования пунктов 1–3 сервер не должен изобретать несовместимую
-канонизацию отдельно от compiler/client.
-
-## 5. Этапы
-
-### M0 — контракты и security baseline
-
-- принять ADR из этого проекта;
-- зафиксировать scoped/unscoped package reference и API v1 schemas;
-- определить exact-version bootstrap и отдельно SemVer resolver profile;
-- определить выдачу/отзыв неиспользованных unscoped grants;
-- подготовить threat model и abuse cases;
-- задать package/manifest/module/native limits;
-- определить key management, yank, quarantine и retention policy;
-- описать compatibility matrix Sputnik/Ember/package format.
-
-Exit gate: один versioned contract одинаково понятен server, client и compiler.
-
-### M1 — package protocol foundation
-
-- реализовать `sputnik-package`;
-- добавить scoped references в manifest/artifact/lockfile;
-- реализовать exact-version network registry support прямо в `sputnik`;
-- добавить versioned SQL migrations и runner внутрь registry;
-- реализовать `sputnik-semver` перед включением ranges/latest;
-- добавить cross-project conformance corpus.
-
-Exit gate: `sputnik` публикует и скачивает
-`publisher/package_name@exact-version` через protocol v1, а server независимо
-проверяет identity и все digests.
-
-### M2 — private bootstrap
-
-- модульный монолит на Sputnik/Ember;
-- `sputnik-orm` + SQLite WAL;
-- local CAS и quarantine;
-- accounts, scoped tokens и package ownership;
-- publisher namespaces и operator-approved unscoped grants;
-- publish session, immutable version, yank;
-- public index/download;
-- audit/outbox и single-node worker;
-- backup/restore и integrity reconciliation.
-
-Exit gate: clean-room end-to-end, race/idempotency/crash recovery tests и
-24-hour private soak без утечек или orphan growth.
-
-### M3 — production storage
-
-- `postgres-sputnik` и `sputnik-orm-postgres`;
-- `sputnik-blobstore` и `s3-sputnik`;
-- `sputnik-jobs`;
-- online migration SQLite -> PostgreSQL через export/import с digest audit;
-- multi-instance leases, rolling deploy и CDN caching;
-- failure injection для DB/object store/worker restarts.
-
-Exit gate: multi-replica canary, backup/restore rehearsal, zero metadata/blob
-divergence после fault suite.
-
-### M4 — supply-chain hardening
-
-- Ed25519 в stdlib/core и package tooling, production keyring;
-- `clamav-sputnik`;
-- native extension policy;
-- tamper-evident audit export;
-- namespace dispute, takedown и incident workflows;
-- dependency graph и reverse-dependency read model.
-
-Exit gate: независимый security review, zero open critical/high и
-воспроизводимый hostile artifact corpus.
-
-### M5 — public launch
-
-- `oidc-sputnik`, account recovery и organization governance;
-- `opentelemetry-sputnik`;
-- rate/size/storage quotas и abuse response;
-- `spdx-sputnik` после manifest metadata extension;
-- документация publishers/consumers/operators;
-- production SLO dashboards и alerts;
-- 72-hour mixed-load soak за trusted edge.
-
-Exit gate: SLO baseline, on-call/runbook, restore drill, key rotation drill и
-утверждённый public launch review.
-
-## 6. Что не следует делать раньше времени
-
-- не выделять микросервисы до измеренной границы масштабирования;
-- не добавлять Redis, Kafka или отдельный search cluster «на будущее»;
-- не выполнять package code для получения metadata;
-- не использовать `sputnik` subprocess как скрытый production parser;
-- не выделять internal migration runner и network client в пакеты без
-  повторного потребителя;
-- не принимать replace/delete опубликованной версии;
-- не освобождать опубликованное short name для нового проекта;
-- не объявлять SQLite bootstrap высокодоступным public registry;
-- не обходить незавершённую Ed25519 цепочку доверия dev signature.
+Release содержит несколько immutable variants с общей логической metadata.
+Prebuilt и source extensions, target/ABI/runtime requirements, bundled dependent
+libraries и native-large profile предусмотрены [NATIVE_ARTIFACTS](NATIVE_ARTIFACTS.md).
+Поставка dependency runtime/SDK — независимая опция по
+[NATIVE_BUNDLES](NATIVE_BUNDLES.md): default none, explicit runtime/sdk, typed
+providers и build-only edges. Local builder/bindings реализованы; managed
+selection/lock остаются gates R1c/R4.
+Новый variant может публиковаться позже без overwrite; lock/signatures привязаны
+к variant/digest. Это R1b до network launch, а не deferred post-v1 feature.

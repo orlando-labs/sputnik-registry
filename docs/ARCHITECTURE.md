@@ -1,497 +1,224 @@
-# Архитектура Sputnik Registry
+# Архитектура Sputnik Registry v1
 
-Статус: proposed, архитектурный baseline без реализации.  
-Дата: 2026-07-26.
+Статус: спецификация для реализации. Актуализация: 2026-10-19.
 
-## 1. Назначение
+## 1. Граница системы
 
-Sputnik Registry хранит метаданные библиотек Sputnik и неизменяемые
-`.sputnikpkg`-артефакты, управляет правами публикации и предоставляет стабильный
-машинный индекс для будущего сетевого клиента `sputnik`.
-
-Главные свойства системы:
-
-1. опубликованную пару `package reference + version` нельзя заменить;
-2. байты артефакта идентифицируются вычисленным сервером SHA-256;
-3. сервер никогда не исполняет код из пакета;
-4. метаданные индекса публикуются только после полной обязательной проверки;
-5. yank сохраняет историю и доступ к байтам, но исключает версию из обычного
-   выбора;
-6. критические изменения владельцев, токенов, релизов и карантина попадают в
-   append-only аудит;
-7. публичный read path не зависит от web-сессии и пригоден для CDN-кэширования;
-8. обычный package reference имеет вид `publisher/package_name`; короткие
-   unscoped имена выдаются только по operator grant.
-
-## 2. Контекст и границы
+Registry хранит metadata и неизменяемые `.sputnikpkg`, проверяет публикации
+и управляет доступностью версий. Resolver и установка принадлежат toolchain.
+Registry не исполняет modules, macros, native code, build hooks или package tests.
 
 ```mermaid
 flowchart LR
-    CLI["sputnik network registry support"] --> Edge["Trusted edge / CDN"]
-    Browser["Web browser"] --> Edge
-    Admin["Registry operator"] --> Edge
-    Edge --> Web["Sputnik Registry web role<br/>Sputnik + Ember"]
-    Web --> DB[("Metadata database")]
-    Web --> Blob[("Artifact CAS")]
-    Web --> Outbox[("Transactional outbox")]
-    Worker["Sputnik Registry worker role"] --> DB
-    Worker --> Blob
-    Worker --> Scanner["Signature / policy / malware scanners"]
-    Outbox --> Worker
+  CLI["sputnik pkg install / publish"] --> E["Trusted HTTPS edge"]
+  E --> W["web: Sputnik + Orbit"]
+  W --> DB[("SQLite WAL")]
+  W --> Q[("Quarantine files")]
+  J["worker: same application"] --> DB
+  J --> Q
+  J --> I["Bounded package inspector"]
+  J --> CAS[("Private durable CAS")]
+  W --> CAS
+  CLI --> H["Existing SPUTNIK_PKG_HOME"]
+  H --> R["Existing graph resolver / native cache"]
+  R --> APP["Script / native executable / notebook"]
 ```
 
-Trusted edge завершает TLS, удаляет клиентские forwarding headers, задаёт
-канонические `X-Forwarded-*`, ограничивает размер/скорость запросов и может
-кэшировать публичные GET/HEAD. Ember слушает только приватный интерфейс в
-соответствии со своим production contract.
+Первый deploy: один узел, один web process, один worker process, общий локальный
+filesystem, SQLite WAL. Можно иметь несколько request tasks, но запись
+сериализуется короткими SQLite transactions. Один migration process.
+Network filesystem для SQLite/CAS не поддерживается этим профилем.
 
-Внешними системами считаются:
+Auth, размерные/tenant quotas и download/publication statistics определены в
+[ACCESS_AND_USAGE](ACCESS_AND_USAGE.md). Usage projection использует отдельный
+local `usage.sqlite` и bounded spool; запись на каждый download не конкурирует
+за metadata writer. Публикационные facts идут через уже существующий outbox.
+Это тот же web/worker deployment, без нового network service.
 
-- `sputnik` с будущей поддержкой сетевого registry protocol;
-- PostgreSQL или SQLite;
-- локальная файловая система либо S3-совместимый blob store;
-- OIDC provider для публичного production-профиля;
-- malware scanner и OTLP collector в public production-профиле.
-
-## 3. Package references и namespaces
-
-### 3.1 Scoped reference по умолчанию
-
-Канонический идентификатор обычного пакета состоит из двух независимо
-валидируемых компонентов:
-
-```text
-publisher/package_name
-```
-
-`publisher` — стабильный namespace account или organization. Это не имя
-текущего maintainer: ownership можно передать без изменения imports,
-dependency declarations и lockfiles.
-
-Один и тот же reference используется во всех местах:
-
-- `[package].name` внутри `sputnik.toml` и `.sputnikpkg`;
-- ключ dependency;
-- publish request;
-- install request;
-- metadata index;
-- `sputnik.lock` вместе с registry origin, version и artifact digest.
-
-Registry identity и module identity при этом различаются. Scoped reference
-записывается в `[package].name`, а `root_module` и `[[modules]].name` остаются
-обычными Sputnik module names без `/`. Чтобы scoped registry не оставлял
-отдельную возможность захватывать короткие import names, admission policy v1
-требует namespace prefix:
-
-- `slowpilot/json` экспортирует root `slowpilot.json` и только
-  `slowpilot.*` modules;
-- curated unscoped `json` может экспортировать `json` и `json.*`.
-
-Установка выполняется по registry reference, импорт — по объявленному module
-name. `sputnik` проверяет prefix policy и запрещает две dependencies,
-предоставляющие один logical module id.
-
-Будущий сетевой режим `sputnik` принимает scoped reference, например
-`slowpilot/json`. Точный CLI verb ещё должен быть согласован в toolchain; эта
-архитектура фиксирует identity, а не придумывает существующую команду.
-
-Текущий `safe_registry_component` Sputnik принимает только alphanumeric, `.`,
-`_`, `-` и не допускает `/`. Toolchain должен разбирать reference до
-filesystem mapping: либо ровно один separator для scoped пакета, либо ни
-одного для разрешённого unscoped пакета. Каждый component затем проверяется
-отдельно. Raw reference никогда не используется как blob path.
-
-### 3.2 Curated unscoped reference
-
-Reference `package_name` без publisher разрешён только когда:
-
-1. оператор выдал subject право публиковать unscoped packages;
-2. оператор зарезервировал за ним конкретное короткое имя;
-3. publish artifact содержит именно это unscoped имя.
-
-Глобального права захватывать любые короткие имена недостаточно. Reservation
-конкретного имени сохраняет curated policy и аудит решения.
-
-После первой публикации scoped или unscoped reference не перераспределяется
-другому проекту. Заброшенный проект помечается archived, его версии можно
-yank/quarantine, а metadata может рекомендовать replacement. Переиспользование
-имени создало бы dependency takeover.
-
-Автоматическое promotion `publisher/name -> name` не входит в protocol v1.
-Если позже появятся aliases, resolver обязан вернуть исходный canonical
-scoped reference и записать его в lockfile.
-
-## 4. Архитектурный стиль
-
-Выбран модульный монолит с ports-and-adapters границами.
-
-Внутри одного исходного проекта существуют две runtime-роли:
-
-- `web`: Ember routes, authentication, read API, orchestration публикации;
-- `worker`: validation jobs, outbox delivery, cleanup, reconciliation и
-  периодические проверки целостности.
-
-Роли разделяют доменную модель, use cases и repository interfaces. Это
-сохраняет одну транзакционную границу и не вводит преждевременные сетевые
-вызовы между внутренними модулями. Горизонтальное масштабирование достигается
-несколькими stateless web/worker экземплярами после перехода на PostgreSQL и
-object storage.
-
-## 5. Логические слои
-
-### 5.1 Delivery
-
-`Registry::Web` содержит только Ember-специфические объекты:
-
-- маршруты и strong parameter schemas;
-- bearer-token и browser-session middleware;
-- преобразование доменных результатов в HTTP status/error envelope;
-- ETag, cache-control, range/download policy;
-- health, readiness и metrics endpoints.
-
-Контроллеры не выполняют SQL, не строят blob paths и не принимают решений о
-правах собственности самостоятельно.
-
-### 5.2 Application
-
-Use cases образуют явную транзакционную границу:
-
-- `StartPublishSession`;
-- `AttachArtifact`;
-- `CommitPublication`;
-- `GetPackageIndex`;
-- `YankVersion` / `UnyankVersion`;
-- `AddOwner` / `RemoveOwner`;
-- `CreateToken` / `RevokeToken`;
-- `QuarantineVersion`;
-- `ReconcilePublication`.
-- `GrantUnscopedName` / `RevokeUnusedUnscopedGrant`.
-
-Use case координирует доменные правила, repositories, blob store и outbox.
-Он не зависит от Ember, SQLite, PostgreSQL или S3.
-
-### 5.3 Domain
-
-Доменные модули:
+## 2. Состав приложения
 
 | Модуль | Ответственность |
 |---|---|
-| Identity | accounts, organizations, memberships, API tokens и scopes |
-| Namespaces | publisher namespaces и curated unscoped-name grants |
-| Packages | canonical reference, ownership, metadata и lifecycle пакета |
-| Releases | publish session, version identity, yank и quarantine |
-| Artifacts | digest, size, media type, validation result и storage key |
-| Policy | лимиты, запрещённые имена, native/capability policy |
-| Discovery | стабильная модель index/search без storage деталей |
-| Audit | неизменяемые security и administrative events |
+| `registry.domain` | Reference, release, session state, ownership, policy results |
+| `registry.application` | Publish/metadata use cases, transaction boundaries |
+| `registry.web` | Orbit routes, exact JSON schemas, auth, status/cache mapping |
+| `registry.persistence` | ORM models, repositories, SQL migrations, outbox |
+| `registry.storage` | Quarantine, durable CAS, bounded downloads, reconciliation |
+| `registry.validation` | Inspector, signatures, capability/native admission |
+| `registry.worker` | Leases, validation, finalize, retries, cleanup |
+| `registry.operations` | Config, health, metrics, backup/restore, operator commands |
+| `registry.usage` | Business/transport ingestion, bounded spool, analytics projections и stats API |
 
-Домен знает интерфейсы `Clock`, `IdGenerator`, `PackageInspector`,
-`BlobStore`, `Repositories` и `EventSink`, но не их реализации.
+Server — native executable: SQLite требует native leaves. Доменные объекты —
+обычные Sputnik values/classes. Ports — документированный набор методов
+адаптера, без предположения о новых возможностях языка. Controllers получают
+application services и не выполняют SQL/строительство paths.
 
-### 5.4 Persistence
+`orm` остаётся data layer. Pool привязывается при startup, use case
+открывает transaction явно. Для reservation/lease/CAS update и migrations
+разрешён bound SQL внутри persistence adapter через тот же pool. Lease
+нельзя передавать в `task.spawn`; worker получает собственный checkout.
+DB transaction не удерживается во время upload, hash, inspection или blob IO.
+Request-wide pool integration не ставится на длинный upload route.
 
-Repositories реализуются через `sputnik-orm`. Модели ORM остаются адаптером,
-а не доменными сущностями: наружу возвращаются доменные значения и
-структурированные ошибки.
+## 3. Identity и compatibility
 
-Для сложных выборок индекса допускаются выделенные query repositories. Это
-не нарушает требование использовать `sputnik-orm`: запись и базовые модели
-остаются в ORM, а read-модель получает отдельный, тестируемый адаптер вместо
-протекания SQL в контроллеры.
+Нормативные reference/layout находятся в [CLIENT](CLIENT.md).
+Один canonical reference одинаков в manifest, dependency, API и lock.
+Namespace стабилен при передаче ownership. После первой публикации reference
+и namespace slug не перераспределяются. Неиспользованные reservations истекают.
 
-### 5.5 Artifact storage
+Scoped `slowpilot/example` предоставляет только `slowpilot.*`, root также
+с этим prefix. Unscoped grant содержит **явные** allowed module prefixes:
+например `orbit-orm` → `orbit.integrations.orm`. Prefix сравнивается по границе
+module segment. Root должен присутствовать в module table. Stdlib module ids
+зарезервированы. Два providers одного module id в одном graph — ошибка resolver.
 
-`BlobStore` предоставляет операции:
+Protocol v1: release `(ref, version)` содержит platform variants. Immutable
+artifact identity — `(ref, version, variant)`. Exact dependencies, одна
+version/variant на graph, newest compatible stable без ranges. Формат artifact —
+[`sputnik.pkg.v1`](PACKAGE_FORMAT.md), стандартный tar.gz с manifest/inventory
+и отдельными files. Module поставляется как source (default) либо bytecode;
+в одном package modes можно смешивать. Native extensions поставляют sources/headers
+либо prebuilt shared libraries с зависимостями. Полный target/binding contract —
+[NATIVE_ARTIFACTS](NATIVE_ARTIFACTS.md).
+Server source не компилирует; client компилирует при install и кэширует вне archive.
+Bytecode-only mode проверяет реальные profile/bytecode/ext ABI и target facts;
+при несовместимости нет source fallback. Необъявленную compiler compatibility
+сервер не выдумывает. Изменить existing variant bytes нельзя; новый platform
+variant можно добавить к той же версии, если common release declarations
+совпадают. Общие module names/common dependencies/capabilities immutable после
+первого publish. Target/ABI/native metadata, representations и explicit exact
+`[artifact.dependencies]` delta относятся к variant; selected graph объединяет
+common и variant deps. Delta не меняет ранее опубликованный variant.
 
-- создать quarantine object;
-- дописать поток с жёстким лимитом;
-- завершить объект и вернуть вычисленный digest/size;
-- атомарно сделать объект доступным по digest;
-- открыть bounded stream для скачивания;
-- проверить наличие и удалить только orphan/quarantine объект;
-- в production вернуть короткоживущий signed download URL.
-
-Ключ объекта выводится только из SHA-256, например
-`sha256/ab/cd/<digest>.sputnikpkg`. Имя пакета, версия и пользовательское имя
-файла никогда не участвуют в физическом пути.
-
-Bootstrap adapter использует временный файл и rename в пределах одного
-filesystem. Production adapter использует quarantine key, server-side copy
-или finalize marker в S3-совместимом хранилище.
-
-### 5.6 Package inspection
-
-`PackageInspector` — отдельный security boundary. Он обязан:
-
-- ограничить размер файла, число записей, размер manifest/lockfile и
-  количество модулей/native blobs;
-- разобрать формат `.sputnikpkg`;
-- пересчитать manifest, lockfile, module и native blob digests;
-- проверить artifact signature согласно registry policy;
-- вернуть нормализованные package reference, версию, dependencies, modules,
-  capabilities и native metadata;
-- не загружать пакет в runtime и не вызывать его module initialization;
-- выдавать стабильные коды ошибок без включения секретов или сырых байтов.
-
-Текущий C++ package API Sputnik не может быть незаметно вызван приложением.
-До появления пакета `sputnik-package` publish path считается заблокированным;
-shell-out в `sputnik` не является production-решением.
-
-## 6. Поток публикации
-
-Публикация двухфазная, чтобы одинаково работать с локальным диском и прямой
-загрузкой в object storage.
+## 4. Publication lifecycle
 
 ```mermaid
-sequenceDiagram
-    participant C as Registry client
-    participant W as Ember web role
-    participant D as Metadata DB
-    participant B as Quarantine CAS
-    participant J as Worker
-
-    C->>W: Create publish session (name, version, idempotency key)
-    W->>D: Reserve namespace/package/version and authorize publisher
-    W-->>C: session_id + upload target
-    C->>B: Stream artifact with hard byte limit
-    C->>W: Commit session
-    W->>D: receiving -> validating + outbox event
-    J->>B: Read quarantined artifact
-    J->>J: Parse, hash, signature and policy checks
-    J->>D: Transaction: metadata + published state + audit
-    J->>B: Finalize digest-addressed object
-    C->>W: Poll session
-    W-->>C: published version + sha256, or structured rejection
+stateDiagram-v2
+  [*] --> created
+  created --> receiving: upload lease
+  receiving --> uploaded: complete durable temp file
+  uploaded --> validating: commit and outbox
+  validating --> promoting: inspector and admission succeed
+  promoting --> published: durable final CAS and DB commit
+  created --> cancelled
+  uploaded --> cancelled
+  created --> expired
+  receiving --> expired
+  uploaded --> expired
+  validating --> rejected
+  validating --> failed: retry budget exhausted
+  promoting --> failed: retry budget exhausted
 ```
 
-Для bootstrap-профиля upload target остаётся endpoint сервера, который
-streaming-режимом пишет в локальный quarantine. Для production это может быть
-короткоживущий signed upload URL. Протокол и состояния не меняются.
+`receiving` после разрыва возвращается в `created` через reclaim upload lease;
+повтор PUT начинает файл с нуля. Cancel receiving fences lease и удаляет temp.
+Cancel validating/promoting запрещён. `cancelled/expired/rejected/failed/published`
+— terminal. Commit, принятый до deadline, не истекает посреди validation.
 
-### 6.1 Состояния publish session
+1. `CreateSession`: auth, quota, grant policy; transaction создаёт package
+   reservation при необходимости, artifact reservation `(ref, version, variant)`,
+   session, audit и
+   idempotency result. Unique reservation исключает гонку.
+2. `Upload`: CAS session revision + upload lease; поток в private temp file
+   с hard limits. Сервер вычисляет полный SHA-256/size, выполняет fsync,
+   затем transaction переводит `receiving -> uploaded`. Client digest не доверенный.
+3. `Commit`: повторная auth; transaction `uploaded -> validating` + outbox.
+   Ответ `202`, работу выполняет worker.
+4. `Validate`: worker claim с deadline/generation; bounded inspector проверяет
+   archive/inventory/source headers, все digests, bytecode, identity, prefixes,
+   dependencies и policy; semantic source compilation остаётся client gate.
+   Public profile проверяет detached publisher signature.
+5. `Promote`: сохранить validation result и `promoting`; durable finalize CAS.
+   Local storage: exclusive destination, проверка уже существующего digest,
+   fsync файла и directory. Обычный overwrite rename не является no-replace.
+6. `Publish`: **после finalize** короткая transaction повторно проверяет actor,
+   token, grants, reservation generation, namespace/package status и lease;
+   создаёт release/common dependencies при первом publish либо сверяет immutable
+   common metadata существующего release; вставляет новый release artifact,
+   заранее подготовленный signature receipt, audit/outbox, увеличивает index
+   revision; grant потребляется первым release, session отмечается published.
+   Receipt готовится вне transaction по immutable inspected values; final
+   transaction подтверждает, что key/policy revisions не изменились.
+7. Variant становится виден атомарно с final blob и metadata. Первый variant
+   открывает release; последующие добавляются без замены старых. Session polling
+   сообщает variant, digest и canonical artifact URL.
 
-`created -> receiving -> uploaded -> validating -> published`
+Filesystem и DB не образуют общую транзакцию. Порядок blob → DB допускает
+orphan final blob после crash, но исключает published без durable blob.
+CAS objects никогда не перезаписываются. Команды replace release нет.
 
-Терминальные альтернативы:
+## 5. Повторы, гонки и восстановление
 
-- `rejected`: содержимое или политика не прошли проверку;
-- `expired`: commit не выполнен до deadline;
-- `failed`: временная инфраструктурная ошибка исчерпала retry budget.
-
-`failed` можно безопасно повторить с тем же idempotency key. `rejected`
-требует новой сессии и другого артефакта.
-
-### 6.2 Commit без распределённой транзакции
-
-База и blob store не образуют одну ACID-транзакцию. Поэтому:
-
-1. quarantine object никогда не виден через public download;
-2. версия становится `published` только при наличии final blob или
-   подтверждённой операции finalize;
-3. database transaction одновременно записывает release metadata, audit и
-   outbox;
-4. reconciler исправляет `validating/failed` сессии и удаляет orphan
-   quarantine objects после retention window;
-5. public index выбирает только `published` и не `quarantined` записи.
-
-## 7. Read path
-
-Машинный индекс отделён от HTML-сайта.
-
-- package detail и index response строятся из нормализованной read-модели;
-- ответы имеют schema version, ETag и конечный `Cache-Control`;
-- yank/quarantine меняет ETag;
-- артефакт получает immutable cache headers, потому что URL содержит digest
-  либо редиректит на digest-addressed object;
-- клиент всегда получает ожидаемый SHA-256 до скачивания;
-- index, install и lockfile всегда возвращают canonical scoped/unscoped
-  package reference без неявного сокращения;
-- обычный resolver не выбирает yanked version, но lockfile может запросить её
-  явно по имени, версии и digest, пока версия не quarantined;
-- quarantine отключает новые скачивания и resolver visibility, сохраняя
-  административное evidence.
-
-## 8. Идентичность и авторизация
-
-### 8.1 API tokens
-
-Публикация использует opaque bearer token не короче 256 бит, созданный через
-`SecureRandom`. В базе хранится только SHA-256 токена, его короткий display
-prefix, scopes, subject, timestamps и необязательный expiry.
-
-Минимальные scopes:
-
-- `package:read`;
-- `package:publish:<canonical-ref>`;
-- `package:yank:<canonical-ref>`;
-- `package:owners:<canonical-ref>`;
-- `namespace:create-package:<publisher>`;
-- `admin:grant-unscoped`;
-- `admin:quarantine`;
-- `admin:accounts`.
-
-Token выводится пользователю один раз. Ротация создаёт новый token, после чего
-старый явно отзывается.
-
-### 8.2 Namespaces
-
-Каждый account получает personal namespace только после проверки canonical
-handle policy. Organization namespace управляется membership roles. Namespace
-slug становится неизменяемым после первой публичной публикации.
-
-Роли namespace:
-
-- `owner`: memberships и namespace policy;
-- `maintainer`: создание scoped packages;
-- `viewer`: приватный namespace в будущем.
-
-Unscoped grant не является свойством namespace по умолчанию. Это отдельная
-operator-controlled запись с subject, конкретным коротким именем, причиной,
-сроком до первой публикации и audit trail. Неиспользованный grant можно
-отозвать; опубликованное unscoped имя не перераспределяется.
-
-### 8.3 Package ownership
-
-У пакета всегда есть хотя бы один owner. Роли:
-
-- `owner`: владельцы, токены, yank и publish;
-- `publisher`: publish и yank;
-- `viewer`: приватные пакеты в будущем.
-
-Удаление последнего owner запрещено. Передача ownership и добавление owner
-создают audit event. Scoped package можно создать только внутри доступного
-subject namespace. Unscoped package требует отдельного grant конкретного
-имени. Спорные имена решаются оператором, а не автоматической перезаписью
-владельца.
-
-## 9. Модель доверия и безопасности
-
-Основные угрозы и ответы:
-
-| Угроза | Контроль |
+| Ситуация | Поведение |
 |---|---|
-| Подмена опубликованной версии | unique `(package_id, version)`, immutable blob, server-computed digest |
-| Path traversal | storage key строится только из валидированного digest |
-| Zip/archive bomb или parser DoS | `.sputnikpkg` не распаковывается; все счётчики/размеры ограничены |
-| Выполнение вредоносного пакета | inspector только парсит и проверяет, runtime load запрещён |
-| Кража publish token | token хранится только как digest, scopes минимальны, аудит и revoke |
-| Confused deputy | URI package reference/version обязаны совпасть с артефактом |
-| Global name squatting | scoped references по умолчанию, audited unscoped grants |
-| Import-name squatting | modules scoped package обязаны иметь `publisher.` prefix |
-| Abandoned-name takeover | опубликованные references не перераспределяются |
-| Race двух публикаций | database unique constraint и idempotency key |
-| Supply-chain подмена | Ed25519 из stdlib/toolchain, keyring gate, SHA-256 в index/lockfile |
-| SSRF | artifact validation не делает исходящих запросов; URL metadata не допускается |
-| Resource exhaustion | edge + Ember body/concurrency/time limits, quotas на subject/package |
-| Удаление evidence | yank/quarantine вместо delete, append-only audit |
+| Две сессии на один variant | Unique reservation; проигравшая получает `ARTIFACT_RESERVED` |
+| Первые variants одной версии имеют разные declarations | Atomic common-metadata check; `RELEASE_METADATA_CONFLICT` |
+| Повтор create с тем же key/body | Та же session; другой body — `IDEMPOTENCY_CONFLICT` |
+| Повтор PUT после uploaded | Только те же bytes; другой upload конфликтует, файл не заменяется |
+| Повтор commit | Текущее состояние; outbox key unique |
+| Crash до finalize | Lease истекает, worker повторяет validation/promotion |
+| Crash после finalize | Final blob проверяется, завершается DB publication |
+| DB commit прошёл, ответ потерян | Poll/create replay возвращают published session |
+| Старый worker ожил | Generation/fencing запрещает поздний DB publish |
+| Права отозваны при validation | Финальный auth check отклоняет публикацию |
+| Invalid artifact / TTL / cancel | Session сохраняется; reservation освобождается транзакционно |
+| Storage unavailable | Bounded retry, затем terminal failed |
 
-Raw publish upload использует отдельный media type, а не multipart. Лимиты
-transport, staging и inspector должны совпадать. Любое повышение package size
-limit требует нагрузочного и disk-pressure теста.
+Release declarations становятся immutable при первом publish; identity variant
+становится невозвратной **при его успешной публикации**. Другие variants той же
+версии могут добавляться без изменения common declarations.
+Новая попытка после terminal failure требует новой session/idempotency key.
+Повтор старого key всегда возвращает прежний результат, не запускает работу.
+Package reference tombstone после первой публикации сохраняется навсегда.
 
-Native extensions получают отдельную policy:
+Jobs сначала внутри registry: DB-backed at-least-once, atomic claim,
+lease 60 s, heartbeat 15 s, generation fencing, capped exponential backoff
+1–300 s с jitter, максимум 10 попыток/24 h. Policy failures не retry.
+Все deadlines сверяются по DB time; параметры конфигурируемы.
 
-- сервер проверяет declared metadata и digests, но не компилирует native code;
-- public launch требует malware scanner;
-- index явно сообщает наличие native blobs, ABI и target triples;
-- registry может запретить native extensions для конкретного tenant или до
-  завершения supply-chain этапа.
+## 6. Read, yank и quarantine
 
-## 10. Наблюдаемость и эксплуатация
+Index содержит published active/yanked releases и доступные artifact variants;
+quarantine release/variant скрыт. Download проверяет оба уровня.
+Yank исключает release из выбора новой установки; pinned lock может получить
+exact yanked digest. Новая установка yanked требует `--allow-yanked`.
+Quarantine запрещает все **новые серверные скачивания**, включая pinned.
+Уже установленные offline bytes отозвать нельзя.
 
-Ember telemetry является входной границей:
+GET index: ETag из revision, `max-age=30, must-revalidate`. Download v1:
+availability check на каждый GET/HEAD, private CAS, `no-store`.
+HTML/search не являются источником истины CLI. Нет публичного digest URL
+для обхода quarantine. Уже начатый download при quarantine может завершиться.
 
-- structured access/error/lifecycle logs без path, query, authorization и
-  artifact bytes;
-- bounded metrics с labels только по route template, method, status class,
-  outcome и job kind;
-- W3C trace context принимается только от trusted edge;
-- liveness отражает способность процесса исполняться;
-- readiness web-роли требует database и обязательный blob store;
-- readiness worker-роли требует database, blob store и обязательные scanners.
+## 7. Deployment и эксплуатация
 
-Доменные метрики:
+TLS/Host/proxy/rate limits задаются trusted edge; Orbit слушает loopback/private
+интерфейс. В private bootstrap accounts, grants и первые tokens создаёт local
+operator command. Для public v1 R8 добавляет CLI login через GitHub Device Flow,
+self-service account/personal namespace signup и JSON API tokens/publisher keys.
+`registration=closed|open` независимо от read/trust profiles; API остаётся bearer.
+Frontend, browser sessions, passwords и organizations не входят в v1. Детали —
+[ACCESS_AND_USAGE](ACCESS_AND_USAGE.md).
+Bearer token даёт пересечение scopes и текущих account/package/namespace прав;
+terminal publish повторяет проверку прав.
 
-- publish sessions по состояниям;
-- validation duration и rejection reason class;
-- bytes uploaded/downloaded;
-- outbox lag, retry и dead-letter count;
-- orphan quarantine objects;
-- blob/database integrity mismatches;
-- token authentication failures и rate-limit rejections.
+Readiness проверяет schema version, DB, writable quarantine/CAS, disk budget,
+key availability public profile и worker heartbeat. При неработающем validator
+приём uploads блокируется, чтобы не накапливать bytes без границ.
+Shutdown прекращает uploads/jobs, завершает либо fences активную работу.
+Liveness не зависит от внешних сервисов. [SECURITY](SECURITY.md) задаёт limits,
+backup и ключи. [DATA_MODEL](DATA_MODEL.md) задаёт constraints.
 
-Логи никогда не содержат bearer tokens, package bytes, cookies, полные
-dependency manifests или причины внутренней криптографической ошибки.
+## 8. Масштабирование
 
-Начальные SLO после появления production-профиля:
+PostgreSQL/ORM adapter и S3 реализуют те же repository/blob contracts с parity
+suite. Bucket private; finalize проверяет size/digest/durability до DB publish.
+Signed URLs допустимы в отдельном профиле с явным quarantine propagation window.
+Default v1 этого не использует.
 
-- read API availability: 99.9% за 30 дней;
-- publish API availability: 99.5% за 30 дней;
-- p95 package-index latency на edge miss: менее 300 мс;
-- 99% обязательных validation jobs: менее 60 секунд для артефакта в лимите;
-- RPO metadata: не более 5 минут, RTO: не более 60 минут;
-- потеря уже подтверждённого immutable blob: 0.
-
-SLO становятся release gate только после измеримого baseline; до этого это
-целевые бюджеты, а не заявленная гарантия.
-
-## 11. Масштабирование
-
-### Bootstrap
-
-- один web process и один worker process;
-- общий локальный persistent volume;
-- SQLite WAL через `sqlite3-sputnik`;
-- local CAS;
-- регулярный snapshot базы и blob inventory;
-- публикация временно останавливается на время несовместимой миграции.
-
-Bootstrap предназначен для разработки, частного registry и canary. Он не
-объявляется публично highly available.
-
-### Production
-
-- несколько stateless web и worker replicas;
-- PostgreSQL как источник истины metadata/outbox;
-- S3-compatible storage с versioning, lifecycle и cross-zone durability;
-- CDN для public index и artifacts;
-- worker lease через `FOR UPDATE SKIP LOCKED` или эквивалент пакета jobs;
-- rolling expand/migrate/contract schema changes;
-- backup/restore rehearsal и периодический inventory reconciliation.
-
-Переход не меняет domain/use-case API: заменяются persistence и blob adapters.
-
-## 12. Проектные границы
-
-Планируемая структура исходного проекта после начала реализации:
-
-```text
-src/registry/domain/          чистые доменные значения и правила
-src/registry/application/     use cases и ports
-src/registry/web/             Ember routes/controllers/middleware
-src/registry/persistence/     sputnik-orm models и repositories
-src/registry/storage/         local/S3 BlobStore adapters
-src/registry/jobs/            outbox handlers и reconciler
-src/registry/telemetry/       domain metrics, logs и traces
-test/                         domain, contract, integration, security
-deploy/                       edge, systemd/Kubernetes examples
-docs/                         контракты, threat model, runbook и ADR
-```
-
-Это карта ответственности, а не заготовка кода.
-
-## 13. Release gates
-
-Реализация может называться production-ready только когда:
-
-1. опубликован protocol v1 и `sputnik` поддерживает scoped publish/install;
-2. package parser/verifier доступен из Sputnik и прошёл hostile corpus/fuzzing;
-3. Ed25519 добавлен в Sputnik stdlib/toolchain, а реальные подписи и key
-   rotation заменили dev signature;
-4. PostgreSQL и object storage adapters прошли failure/retry tests;
-5. schema migrations поддерживают rolling upgrade и rollback policy;
-6. threat model и security review не имеют открытых critical/high;
-7. backup/restore и blob reconciliation отрепетированы;
-8. edge/proxy deployment прошёл canary;
-9. Ember и registry выдержали 72-часовой mixed-load soak;
-10. опубликованы SLO baseline, on-call runbook и incident procedures.
+Перенос SQLite → PostgreSQL: write maintenance window, consistent export,
+copy/verify blobs, import/constraints, переключение. Online dual write и
+безостановочный cutover не обещаются. Redis, broker, search и общий jobs/blobstore
+package появляются по реальной потребности.

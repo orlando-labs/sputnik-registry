@@ -1,0 +1,12 @@
+{
+  "project": "cuda_registry_8d36f2e00cb8",
+  "id": "f6bbb0ff6731e5ef5799304daefd8831",
+  "action": "install_sputnik",
+  "state": "succeeded",
+  "directory": "/ssd1Tb/slowpilot-sputnik-cuda-20261022/core-state/projects/cuda_registry_8d36f2e00cb8/operations/f6bbb0ff6731e5ef5799304daefd8831",
+  "request": "{\"command_id\":\"4c3cbf2138a97ffac875ebcfafa19dd6\",\"action\":\"install_sputnik\",\"source\":\"slowpilot/sputniktorch\",\"version\":\"0.1.2\",\"backend\":\"cuda\",\"bundle\":\"runtime\",\"allow_native\":true,\"allow_native_large\":true,\"project_id\":\"cuda_registry_8d36f2e00cb8\"}",
+  "error": "",
+  "result": "{}",
+  "stdout": "Installed slowpilot/sputniktorch@0.1.2 in /ssd1Tb/slowpilot-sputnik-cuda-20261022/core-state/projects/cuda_registry_8d36f2e00cb8/packages/slowpilot/sputniktorch/0.1.2/linux-x86_64-gnu-cu130-prebuilt-source-runtime\n",
+  "stderr": ""
+}

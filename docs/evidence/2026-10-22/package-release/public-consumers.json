@@ -1,0 +1,8 @@
+{
+  "installed_packages": 11,
+  "root_aliases_verified_separately": true,
+  "automatic_variant_selection": true,
+  "source_module_preference": true,
+  "vm_conformance": true,
+  "registry_locks": true
+}

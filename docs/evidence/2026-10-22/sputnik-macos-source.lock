@@ -1,0 +1,9 @@
+schema = "sputnik.packages.lock.v1"
+
+[[packages]]
+name = "slowpilot/sputniktorch"
+version = "0.1.2"
+variant = "macos-aarch64-source-source-none"
+digest = "sha256:9b004507a136165f3e910360cca1beb7d0b2c95a58ea21941b7db1d0d05e682c"
+source_kind = "registry"
+source = "https://registry.sputnik-lang.online"

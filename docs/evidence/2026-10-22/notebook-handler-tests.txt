@@ -1,0 +1,3 @@
+bytecode_tests: ok
+notebook_compiler_tests ok
+notebook_vm_integration_tests ok

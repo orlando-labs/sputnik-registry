@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SDK=${SPUTNIK:-"$ROOT/../sputnik-lang/build/sputnik"}
+SPUTNIK_NATIVE_RT_CACHE=${SPUTNIK_NATIVE_RT_CACHE:-"$ROOT/.build/native-runtime"}
+SPUTNIK_NATIVE_RT_JOBS=${SPUTNIK_NATIVE_RT_JOBS:-2}
+export SPUTNIK_NATIVE_RT_CACHE SPUTNIK_NATIVE_RT_JOBS
+exec "$SDK" run "$ROOT/tools/build.s" --grant process.spawn --grant fs.read --grant fs.write --grant fs.metadata -- --root "$ROOT" "$@"
