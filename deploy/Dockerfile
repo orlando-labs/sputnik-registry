@@ -4,7 +4,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential clang-19 llvm-19 lld-19 pkg-config libssl-dev libarchive-dev libyaml-dev zlib1g-dev bzip2 \
     ca-certificates python3 curl && rm -rf /var/lib/apt/lists/*
 # Keep the inspector's regexp engine aligned with the current SDK.
-COPY pcre2-10.47.tar.bz2 /tmp/pcre2-10.47.tar.bz2
+RUN curl --fail --location --retry 3 \
+    https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.tar.bz2 \
+    --output /tmp/pcre2-10.47.tar.bz2
 RUN echo '47fe8c99461250d42f89e6e8fdaeba9da057855d06eb7fc08d9ca03fd08d7bc7  /tmp/pcre2-10.47.tar.bz2' | sha256sum -c - \
     && cd /tmp && tar -xjf pcre2-10.47.tar.bz2 && cd pcre2-10.47 \
     && ./configure --prefix=/opt/pcre2 --enable-unicode --enable-jit --disable-pcre2grep --disable-pcre2test \
