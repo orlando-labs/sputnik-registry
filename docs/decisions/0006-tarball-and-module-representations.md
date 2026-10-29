@@ -4,6 +4,10 @@
 Заменяет пункты 3/5 ADR-0005 в части format/lock compatibility.
 По указанию пользователя ещё не применённая v1 допускает breaking changes.
 
+Уточнение от 2026-10-29: авторский manifest объединён с `sputnik.build.yaml`;
+в archive используется canonical `sputnik.build.json` с той же build-схемой.
+Это заменяет имя root manifest в исходном решении ниже.
+
 ## Контекст
 
 Текстовый `sputnik.pkg.v1` кодирует binary payload в hex и смешивает transport,

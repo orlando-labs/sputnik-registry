@@ -36,22 +36,40 @@ def rewrite(text):
     return text
 
 def manifest(data):
-    lines = ['schema = "sputnik.package-manifest.v1"']
-    def table(name, obj, repeated=False):
-        lines.append('\n' + ('[[' if repeated else '[') + name + (']]' if repeated else ']'))
-        for k,v in obj.items():
-            if isinstance(v,dict): continue
-            if isinstance(v,list) and v and isinstance(v[0],dict): continue
-            lines.append(Q(k) + ' = ' + Q(v))
-        for k,v in obj.items():
-            if isinstance(v,dict): table(name+'.'+k,v)
-            elif isinstance(v,list) and v and isinstance(v[0],dict):
-                for item in v: table(name+'.'+k,item,True)
-    for name,obj in data.items():
-        if isinstance(obj,list):
-            for item in obj: table(name,item,True)
-        else: table(name,obj)
-    return '\n'.join(lines)+'\n'
+    package = data['package']
+    result = dict(schema='sputnik.build.v1', **package, source_root='src')
+    result.pop('root', None)
+    files = list(data.get('files', {}).get('include', []))
+    names = {}
+    for module in data.get('modules', []):
+        path = module.get('source', module.get('bytecode', module.get('path')))
+        files.append(path)
+        inferred = path.removeprefix('src/').rsplit('.', 1)[0].replace('/', '.')
+        if inferred != module['name']: names[path] = module['name']
+    native = data.get('native', [])
+    for extension in native:
+        files.extend(extension.get('sources', [])); files.extend(extension.get('headers', []))
+        if extension.get('library'): files.append(extension['library'])
+        files.extend(library['path'] for library in extension.get('libraries', []))
+    for provider in data.get('native_providers', []):
+        files.extend(provider.get('files', []))
+        files.extend(library['path'] for library in provider.get('libraries', []))
+    expanded = []
+    for file in files:
+        path = stage / file
+        if path.is_dir(): expanded.extend(p.relative_to(stage).as_posix() for p in sorted(path.rglob('*')) if p.is_file())
+        else: expanded.append(file)
+    result['files'] = list(dict.fromkeys(expanded))
+    if names: result['module_names'] = names
+    if native:
+        result['native_extensions'] = native
+        result['profiles'] = dict(required=['core.v1', 'ffi.v1'])
+    for key in ['artifact', 'target', 'dependencies', 'capabilities', 'native_requirements', 'native_providers']:
+        if key in data: result[key] = data[key]
+    if 'artifact' in result and 'build-dependencies' in result['artifact']:
+        result['artifact']['build_dependencies'] = result['artifact'].pop('build-dependencies')
+    # YAML flow values use the JSON subset and need no third-party serializer.
+    return ''.join(key + ': ' + Q(value) + '\n' for key, value in result.items())
 
 def run(cmd,log):
     print('+', ' '.join(map(str,cmd)),flush=True)
@@ -81,8 +99,10 @@ for src in cfg['sources']:
         seen.add(file)
         if not file.is_file(): continue
         text=file.read_text(); name=re.search(r'^package ([\w.]+)',text,re.M).group(1)
-        dest=stage/file.relative_to(repo); dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text(rewrite(text))
-        data['modules'].append({'name':scoped(name),'source':file.relative_to(repo).as_posix()})
+        module=scoped(name)
+        relative=Path('src').joinpath(*module.split('.')).with_suffix('.s')
+        dest=stage/relative; dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text(rewrite(text))
+        data['modules'].append({'name':module,'source':relative.as_posix()})
 if cfg.get('dependencies'):data['dependencies']={'slowpilot/'+k:v for k,v in cfg['dependencies'].items()}
 if cfg.get('capabilities'):data['capabilities']=cfg['capabilities']
 files=[]
@@ -131,7 +151,7 @@ if native:
         if cfg.get('native_requirements'):
             data['native_requirements']=[r for r in data['native_requirements'] if r['kind']=='runtime'];ext['requirements']=[r['id'] for r in data['native_requirements']]
         data['native']=[ext]
-(stage/'sputnik.toml').write_text(manifest(data))
+(stage/'sputnik.build.yaml').write_text(manifest(data))
 archive=work/(cfg['name']+'-'+variant+'.sputnikpkg')
 run([a.sputnik.resolve(),'pkg','build',stage,'--modules',a.modules,'--out',archive],work/'build.log')
 run([a.sputnik.resolve(),'pkg','inspect',archive],work/'inspect.json')

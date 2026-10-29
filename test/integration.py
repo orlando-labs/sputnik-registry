@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Loopback contract/fault tests against real Sputnik web/worker processes."""
+from manifest import write_source_manifest
 import argparse
 import hashlib
 import http.client
@@ -91,12 +92,12 @@ def main():
             time.sleep(.1)
         process.terminate()
         raise TimeoutError('server readiness')
-    def fixture(ver='1.0.0',var='source',mode='source',extra=''):
+    def fixture(ver='1.0.0',var='source',mode='source',extra=None):
         source=work/(ver+'-'+var)
         source.mkdir()
         (source/'main.s').write_text('package test.demo\nexport answer\ndef answer(): 42\n')
         (source/'helper.s').write_text('package test.helper\nexport answer\ndef answer(): 7\n')
-        (source/'sputnik.toml').write_text(f'schema = "sputnik.package-manifest.v1"\n[package]\nname="test/demo"\nversion="{ver}"\nroot="test.demo"\n[artifact]\nvariant="{var}"\n[[modules]]\nname="test.demo"\nsource="main.s"\n[[modules]]\nname="test.helper"\nsource="helper.s"\n'+extra)
+        write_source_manifest(source, 'test/demo', ver, var, {'main.s': 'test.demo', 'helper.s': 'test.helper'}, ['main.s','helper.s'], extra)
         out=work/(ver+'-'+var+'.sputnikpkg')
         args=[str(SDK),'pkg','build',str(source),'--out',str(out),'--variant',var,'--modules',mode]
         if mode=='mixed':args+=['--bytecode-module','test.helper']

@@ -74,7 +74,7 @@ def fences_and_revocation(t,library):
         ref='test/provider_none' if mode=='native-grant' else t.ref
         if mode=='native-grant':
             name,body,target,provider=t.library()
-            payload=t.artifact(version,ref=ref,extra=target+provider,files={'main.s':'package test.contract\nexport answer\ndef answer(): 42\n',name:body})
+            payload=t.artifact(version,ref=ref,extra={**target, **provider},files={'main.s':'package test.contract\nexport answer\ndef answer(): 42\n',name:body})
         else: payload=t.artifact(version)
         sid=t.queue(payload,version,ref=ref)
         env,marker=fault_environment(t,library,'linkat','/blobs/')
@@ -141,10 +141,10 @@ def archives(t):
 
     for i,(profile,limit) in enumerate([('standard',67108864),('native-large',4294967296)]):
         version='26.1.'+str(i)
-        original=t.artifact(version,fields='limit_profile="'+profile+'"\n')
+        original=t.artifact(version,fields={'limit_profile': profile})
         prefix=io.BytesIO()
         with tarfile.open(fileobj=io.BytesIO(original)) as archive:
-            for name in ['sputnik.toml','checksums.sha256']:
+            for name in ['sputnik.build.json','checksums.sha256']:
                 member=archive.getmember(name); body=archive.extractfile(member).read()
                 prefix.write(member.tobuf(format=tarfile.USTAR_FORMAT)); prefix.write(body); prefix.write(b'\0'*((-len(body))%512))
         member=tarfile.TarInfo('too-large.bin'); member.size=limit+1
@@ -160,7 +160,7 @@ def archives(t):
     stream=io.BytesIO()
     with gzip.GzipFile(fileobj=stream,mode='wb') as zipped:
         with tarfile.open(fileobj=io.BytesIO(original)) as archive:
-            for name in ['sputnik.toml','checksums.sha256']:
+            for name in ['sputnik.build.json','checksums.sha256']:
                 member=archive.getmember(name); body=archive.extractfile(member).read()
                 zipped.write(member.tobuf(format=tarfile.USTAR_FORMAT)); zipped.write(body); zipped.write(b'\0'*((-len(body))%512))
         block=b'\0'*(1024*1024)
@@ -178,7 +178,7 @@ def archives(t):
 def downloads(t):
     t.reset_rate()
     data=os.urandom(4*1024*1024)
-    payload=t.artifact('27.0.0',extra='[files]\ninclude=["payload.bin"]\n',files={'main.s':'package test.contract\nexport answer\ndef answer(): 42\n','payload.bin':data})
+    payload=t.artifact('27.0.0',extra={'files': {'include': ['payload.bin']}},files={'main.s':'package test.contract\nexport answer\ndef answer(): 42\n','payload.bin':data})
     t.check(t.publish(payload,'27.0.0')['state']=='published','large download fixture')
     url=t.base+'/versions/27.0.0/artifacts/source/download'
     t.run('worker-once')

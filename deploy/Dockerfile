@@ -1,8 +1,15 @@
 FROM debian:bookworm-slim AS build
 ARG BUILD_JOBS=16
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential clang-19 llvm-19 lld-19 pkg-config libssl-dev libarchive-dev libyaml-dev zlib1g-dev \
+    build-essential clang-19 llvm-19 lld-19 pkg-config libssl-dev libarchive-dev libyaml-dev zlib1g-dev bzip2 \
     ca-certificates python3 curl && rm -rf /var/lib/apt/lists/*
+# Keep the inspector's regexp engine aligned with the current SDK.
+COPY pcre2-10.47.tar.bz2 /tmp/pcre2-10.47.tar.bz2
+RUN echo '47fe8c99461250d42f89e6e8fdaeba9da057855d06eb7fc08d9ca03fd08d7bc7  /tmp/pcre2-10.47.tar.bz2' | sha256sum -c - \
+    && cd /tmp && tar -xjf pcre2-10.47.tar.bz2 && cd pcre2-10.47 \
+    && ./configure --prefix=/opt/pcre2 --enable-unicode --enable-jit --disable-pcre2grep --disable-pcre2test \
+    && make -j${BUILD_JOBS} && make install
+ENV PKG_CONFIG_PATH=/opt/pcre2/lib/pkgconfig LD_LIBRARY_PATH=/opt/pcre2/lib
 WORKDIR /src
 ENV CXX=clang++-19 SPUTNIK_NATIVE_CXX=clang++-19 SPUTNIK_NATIVE_JOBS=8
 COPY sputnik-lang/ sputnik-lang/
@@ -39,6 +46,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10097 registry \
     && useradd --uid 10097 --gid 10097 --no-create-home --shell /usr/sbin/nologin registry
+COPY --from=build /opt/pcre2/lib/libpcre2-8.so* /usr/local/lib/
+RUN ldconfig
 WORKDIR /opt/registry
 COPY --from=test /src/sputnik-registry/.build/native/registry /usr/local/bin/registry
 COPY --from=test /src/sputnik-registry/migrations/ migrations/

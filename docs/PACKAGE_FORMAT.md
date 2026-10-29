@@ -28,7 +28,7 @@ C/C++ sources: [NATIVE_ARTIFACTS](NATIVE_ARTIFACTS.md). Release может со�
 несколько artifacts, immutable identity — `(ref, version, variant)`.
 
 ```text
-sputnik.toml
+sputnik.build.json
 checksums.sha256
 src/example.s
 bytecode/internal.sputnikbc
@@ -50,38 +50,31 @@ Dependencies других пакетов объявляются, но их files
 
 ## 2. Distribution manifest
 
-В корне `sputnik.toml` со schema `sputnik.package-manifest.v1`.
+В корне `sputnik.build.json` со schema `sputnik.build.v1`.
 Это versioned distribution manifest; packer строит его из source/build manifest.
 Отдельного несогласованного manifest.json внутри archive нет.
 Пример смешанного пакета:
 
-```toml
-schema = "sputnik.package-manifest.v1"
-
-[package]
-name = "slowpilot/example"
-version = "1.2.0"
-root = "slowpilot.example"
-
-[artifact]
-variant = "source"
-limit_profile = "standard"
-
-[target]
-os = "any"
-arch = "any"
-compute_backend = "none"
-
-[[modules]]
-name = "slowpilot.example"
-source = "src/example.s"
-
-[[modules]]
-name = "slowpilot.internal"
-bytecode = "bytecode/internal.sputnikbc"
-
-[dependencies]
-"slowpilot/base" = "1.0.0"
+```yaml
+schema: "sputnik.build.v1"
+name: "slowpilot/example"
+version: "1.2.0"
+source_root: "."
+files:
+  - "src/example.s"
+  - "bytecode/internal.sputnikbc"
+module_names:
+  "src/example.s": "slowpilot.example"
+  "bytecode/internal.sputnikbc": "slowpilot.internal"
+dependencies:
+  "slowpilot/base": "1.0.0"
+artifact:
+  variant: "source"
+  limit_profile: "standard"
+target:
+  os: "any"
+  arch: "any"
+  compute_backend: "none"
 ```
 
 Для каждого module ровно одно из `source`/`bytecode`. Нет неявного выбора между
@@ -131,17 +124,17 @@ binding/ABI metadata и declared dependent libraries. Native source для prebu
 Доставка сторонних runtimes независима от source/prebuilt: default bundle `none`,
 explicit `runtime` либо `sdk`. Source+runtime допустим без вложенного SDK.
 Typed requirements/providers и отдельные native-only runtime/SDK packages —
-[NATIVE_BUNDLES](NATIVE_BUNDLES.md). Native-only `[package].kind = "native"`
-не требует фиктивных modules/root; обычный `kind = "library"` их сохраняет.
+[NATIVE_BUNDLES](NATIVE_BUNDLES.md). Native-only `kind: native`
+не требует фиктивных modules/root; обычный `kind: library` требует modules без обязательного root.
 Provider model заменяет плоский список dependency libraries текущего prototype
 внутри той же v1, без второго параллельного wire format.
 
-Target задаётся `[target]`, variant id — `[artifact].variant`, size profile —
-`[artifact].limit_profile`. Дополнительные exact dependencies только для этого
-platform/backend задаются `[artifact.dependencies]`; common `[dependencies]`
+Target задаётся `target`, variant id — `artifact.variant`, size profile —
+`artifact.limit_profile`. Дополнительные exact dependencies только для этого
+platform/backend задаются `artifact.dependencies`; common `dependencies`
 release остаётся общей. Build-only exact edges задаются
-`[artifact.build-dependencies]` и не активируются при runtime-only install/run.
-Bundle profile `[artifact].bundle` входит в selection/lock; не выводится из label.
+`artifact.build_dependencies` и не активируются при runtime-only install/run.
+Bundle profile `artifact.bundle` входит в selection/lock; не выводится из label.
 Client объединяет applicable graphs без exact-version/provider conflicts. Packer генерирует эти sections и для any/any source
 variant. Server сравнивает target и реальные binary headers без выполнения.
 Paths package-relative; publisher build checkout paths не распространяются.
@@ -163,7 +156,7 @@ checkout рекурсивно без allowlist. Установка сохран�
 ## 4. Inventory, digest и подписи
 
 `checksums.sha256` — sorted UTF-8/LF inventory: `<64-lowercase-hex>  <relative-path>`
-по одному regular file на строку. Содержит `sputnik.toml` и все payload/docs/
+по одному regular file на строку. Содержит `sputnik.build.json` и все payload/docs/
 metadata/resource files; не содержит себя. Paths без LF/CR/NUL/backslash.
 Inventory и manifest нужны целиком для inspection; limit каждого 1 MiB.
 
@@ -242,7 +235,7 @@ Client extracts только проверенные inventory members в private
   origin не угадывается и lock при обычном run не переписывается молча.
 - Synthetic embedded `sputnik.lock.v1` не переносится в archive: exact package
   declarations уже находятся в manifest; application lock — отдельный документ.
-- `/api/v1`, `sputnik.package-manifest.v1` и release-signature schemas остаются v1.
+- `/api/v1`, `sputnik.build.v1` и release-signature schemas остаются v1.
   Capabilities сообщает archive format и source/bytecode modes.
 - После первой фактической публикации immutable artifact identity
   `(ref, version, variant, digest)` начинает действовать.

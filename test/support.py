@@ -1,4 +1,5 @@
 """Shared real-process fixtures for registry contract and failure tests."""
+from manifest import write_source_manifest
 import hashlib
 import json
 import platform
@@ -50,7 +51,7 @@ class Harness:
             time.sleep(.025)
         raise AssertionError(label)
 
-    def artifact(self, version, variant='source', ref=None, extra='', fields='', files=None, native=False):
+    def artifact(self, version, variant='source', ref=None, extra=None, fields=None, files=None, native=False):
         ref = ref or self.ref
         directory = self.work/('fixture-'+secrets.token_hex(6)); directory.mkdir()
         module = (ref.split('/')[0]+'.' if '/' in ref else '')+'contract'
@@ -58,12 +59,8 @@ class Harness:
         for name, value in files.items():
             path = directory/name; path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(value if isinstance(value, bytes) else value.encode())
-        text = 'schema="sputnik.package-manifest.v1"\n[package]\nname='+json.dumps(ref)+'\nversion='+json.dumps(version)+'\n'
-        text += 'kind="native"\n' if native else 'root='+json.dumps(module)+'\n'
-        text += '[artifact]\nvariant='+json.dumps(variant)+'\n'+fields
-        if not native:
-            text += '[[modules]]\nname='+json.dumps(module)+'\nsource="main.s"\n'
-        (directory/'sputnik.toml').write_text(text+extra)
+        write_source_manifest(directory, ref, version, variant,
+            None if native else {'main.s': module}, files, extra, fields)
         output = directory/'package.sputnikpkg'
         result = subprocess.run([str(self.ctx['SDK']), 'pkg', 'build', str(directory), '--out', str(output), '--variant', variant], capture_output=True, text=True, timeout=120)
         if result.returncode:
@@ -114,8 +111,8 @@ class Harness:
         result = subprocess.run(['clang']+flags+[str(directory/'lib.c'), '-o', str(directory/name)], capture_output=True, text=True)
         self.check(result.returncode == 0, 'build provider fixture library')
         arch = 'aarch64' if platform.machine() in ('arm64','aarch64') else 'x86_64'
-        target = '[target]\nos="'+('macos' if mac else 'linux')+'"\narch="'+arch+'"\n'
-        if mac: target += 'min_os="13.0"\n'
-        else: target += 'libc='+json.dumps('musl' if platform.libc_ver()[0] == 'musl' else 'gnu')+'\n'
-        provider = '[[native_providers]]\nid="contract-runtime"\nkind="runtime"\nversion="1.0.0"\nabi="contract-1"\nbuild_id="sha256:'+'a'*64+'"\nfiles=["'+name+'"]\n[[native_providers.libraries]]\npath="'+name+'"\nrole="runtime"\nabi="contract-1"\n'
+        target = {'target': dict(os='macos' if mac else 'linux', arch=arch)}
+        if mac: target['target']['min_os'] = '13.0'
+        else: target['target']['libc'] = 'musl' if platform.libc_ver()[0] == 'musl' else 'gnu'
+        provider = {'native_providers': [dict(id='contract-runtime',kind='runtime',version='1.0.0',abi='contract-1',build_id='sha256:'+'a'*64,files=[name],libraries=[dict(path=name,role='runtime',abi='contract-1')])]}
         return name, (directory/name).read_bytes(), target, provider

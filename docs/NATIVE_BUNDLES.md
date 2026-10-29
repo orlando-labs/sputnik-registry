@@ -26,8 +26,8 @@ Prebuilt adapter сначала собирается на publisher, затем 
 
 ## 2. Профили bundle
 
-Writer option `sputniktorch/tools/package --bundle none|runtime|sdk`, default `none`.
-В distribution manifest результат фиксирует `[artifact].bundle`; filename
+Writer option `torch/tools/package --bundle none|runtime|sdk`, default `none`.
+В distribution manifest результат фиксирует `artifact.bundle`; filename
 и слово `source` не заменяют эту metadata.
 
 | Native adapter | Bundle | Что в archive | Что нужно потребителю извне |
@@ -39,7 +39,7 @@ Writer option `sputniktorch/tools/package --bundle none|runtime|sdk`, default `n
 | prebuilt | runtime | Extension + runtime closure | Sputnik runtime, OS и объявленные drivers |
 
 Каждая строка сочетается с source/bytecode/mixed Sputnik modules. В текущем
-`sputniktorch` это максимум 15 содержательно разных combinations, а не
+`torch` это максимум 15 содержательно разных combinations, а не
 обязательная матрица для каждой сборки. Default строит один запрошенный artifact;
 matrix mode получает явные axes/filters. SDK bundle без native source в v1
 отклоняется: для готового адаптера SDK не нужен. Для native provider packages
@@ -96,48 +96,42 @@ Minimum OS/libc/CPU — максимум требований всех пост�
 | SDK provider | headers/config/link exports, toolchain requirements и связь с конкретным runtime build |
 | Resolved provider | Проверенный fingerprint, package artifact либо bundled members либо external input provenance |
 
-Целевой TOML для managed package providers; parser хранит эти records, но
+Целевой YAML для managed package providers; parser хранит эти records, но
 package-edge resolution/selection пока не реализованы. Текущая matrix использует
 `provider=external` с explicit local bindings или `provider=bundled`:
 
-```toml
-[artifact]
-variant = "source-none"
-bundle = "none"
-
-[artifact.dependencies]
-"vendor/libtorch-runtime" = "2.14.0-r1"
-
-[artifact.build-dependencies]
-"vendor/libtorch-sdk" = "2.14.0-r1"
-
-[[native_requirements]]
-id = "libtorch"
-kind = "runtime"
-version = "2.14.0"
-abi = "<libtorch-cxx-abi-id>"
-provider = "package"
-package = "vendor/libtorch-runtime"
-
-[[native_requirements]]
-id = "libtorch-sdk"
-kind = "sdk"
-version = "2.14.0"
-provider = "package"
-package = "vendor/libtorch-sdk"
-runtime = "libtorch"
-
-[[native]]
-name = "sputniktorch"
-kind = "source"
-requirements = ["libtorch", "libtorch-sdk"]
-# sources/headers и обычные adapter build facts
+```yaml
+artifact:
+  variant: source-none
+  bundle: none
+  dependencies:
+    vendor/libtorch-runtime: "2.14.0-r1"
+  build_dependencies:
+    vendor/libtorch-sdk: "2.14.0-r1"
+native_requirements:
+  - id: libtorch
+    kind: runtime
+    version: "2.14.0"
+    abi: "<libtorch-cxx-abi-id>"
+    provider: package
+    package: vendor/libtorch-runtime
+  - id: libtorch-sdk
+    kind: sdk
+    version: "2.14.0"
+    provider: package
+    package: vendor/libtorch-sdk
+    runtime: libtorch
+native_extensions:
+  - name: torch
+    kind: source
+    requirements: [libtorch, libtorch-sdk]
+    # sources/headers и обычные adapter build facts
 ```
 
 `vendor/...` — примеры references, не назначенные publisher accounts.
 Native dependency edges принадлежат artifact: runtime —
-`[artifact.dependencies]`, SDK/build-only — `[artifact.build-dependencies]`.
-Общие Sputnik `[dependencies]` остаются release-wide. Bundle заменяет
+`artifact.dependencies`, SDK/build-only — `artifact.build_dependencies`.
+Общие Sputnik `dependencies` остаются release-wide. Bundle заменяет
 соответствующий provider edge вложенным provider record; client не скачивает
 тот же runtime второй раз как обязательную common dependency.
 Версия provider package может отличаться от upstream LibTorch version;
@@ -150,10 +144,10 @@ headers и binary facts, не вызывает library functions до native tru
 невозможно, нужен явный producer descriptor; произвольный prefix не принимается
 за проверенный runtime. Обычный import не ищет новый SDK по cwd/PATH.
 
-`provider=bundled` ссылается на `[[native_providers]]` внутри того же artifact.
+`provider=bundled` ссылается на `native_providers` внутри того же artifact.
 Library records под provider содержат relative paths и exports; inventory
 остаётся единственным полным списком physical members. Текущий плоский
-`[[native.libraries]]` при реализации переносится под provider, без второго
+`native_extensions[].libraries` при реализации переносится под provider, без второго
 конкурирующего списка dependency files. Один payload может обслуживать несколько
 extensions. SDK assets не смешиваются с runtime libraries.
 
@@ -164,9 +158,9 @@ SDK и runtime должны принадлежать согласованном�
 
 ## 5. Native-only packages
 
-Для отдельно поставляемых runtime/SDK нужен `[package].kind = "native"`:
-`[[native_providers]]`, inventory/resources/license metadata, ноль Sputnik modules,
-root отсутствует. `kind=library` остаётся default и требует обычные modules/root.
+Для отдельно поставляемых runtime/SDK нужен `kind: native`:
+`native_providers`, inventory/resources/license metadata, ноль Sputnik modules,
+root отсутствует. `kind: library` остаётся default и требует обычные modules без обязательного root.
 Не создавать фиктивный `.s` только ради текущей проверки «хотя бы один module».
 Обычная C++ library provider не обязана экспортировать Sputnik extension ABI.
 

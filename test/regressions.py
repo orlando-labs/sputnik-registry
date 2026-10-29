@@ -4,6 +4,7 @@ Run through integration.py, against the same real native/VM web and worker.
 SQL is used only for deterministic clock/budget/crash-window setup; requests,
 artifact validation, process termination, publication and restore use public APIs.
 """
+from manifest import write_source_manifest
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -56,16 +57,13 @@ def run_regressions(ctx):
             time.sleep(.025)
         raise AssertionError(label)
 
-    def custom_package(ref, ver, var, files, extra='', modules=True):
+    def custom_package(ref, ver, var, files, extra=None, modules=True):
         source = work/('custom-'+secrets.token_hex(6)); source.mkdir()
         for name, contents in files.items():
             path = source/name; path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents if isinstance(contents, bytes) else contents.encode())
-        text = 'schema="sputnik.package-manifest.v1"\n[package]\nname='+json.dumps(ref)+'\nversion='+json.dumps(ver)+'\n'
-        text += 'root="test.demo"\n' if modules else 'kind="native"\n'
-        text += '[artifact]\nvariant='+json.dumps(var)+'\n'
-        if modules: text += '[[modules]]\nname="test.demo"\nsource="main.s"\n'
-        (source/'sputnik.toml').write_text(text+extra)
+        write_source_manifest(source, ref, ver, var,
+            {'main.s': 'test.demo'} if modules else None, files, extra)
         artifact = source/'artifact.sputnikpkg'
         result = subprocess.run([str(ctx['SDK']), 'pkg', 'build', str(source), '--out', str(artifact), '--variant', var], capture_output=True, text=True)
         check(result.returncode == 0, 'build custom '+ref+'/'+ver+'/'+var+': '+result.stderr[-200:])
@@ -177,14 +175,14 @@ def run_regressions(ctx):
             cancel(result[2])
         for var in ['a'*129, '_cpu', '-cpu', '.', '..', 'a..b', 'a/b']:
             expect_error(create(payload, ver='10.1.0', var=var), 400, 'INVALID_VARIANT', 'reject variant '+var[:12])
-        dotted = fixture(ver='10.1.1', var='cpu.v1', extra='[target]\nos="macos"\narch="aarch64"\ncpu_features=["neon"]\ncompute_backends=["cpu"]\n')
+        dotted = fixture(ver='10.1.1', var='cpu.v1', extra={'target': {'os': 'macos', 'arch': 'aarch64', 'cpu_features': ['neon'], 'compute_backends': ['cpu']}})
         publish(dotted, ver='10.1.1', var='cpu.v1')
         exact = request('GET', base+'/versions/10.1.1/artifacts/cpu.v1')[2]
         compact = request('GET', base+'/versions/10.1.1')[2]['artifacts'][0]
         check(exact['target']['cpu_features'] == ['neon'] and exact['target']['compute_backends'] == ['cpu'], 'verified CPU/backend requirements survive facade')
         check(exact['compatibility']['bytecode_versions'] == [] and exact['compatibility']['sputnik_ext_abi'] is None, 'source compatibility schema')
         check(compact['compatibility'] == exact['compatibility'] and compact['bundle'] == exact['bundle'], 'compact metadata retains selection facts')
-        check('archive_manifest_toml' not in exact, 'public metadata avoids duplicated archive manifest')
+        check('archive_manifest_toml' not in exact and 'archive_manifest_json' not in exact, 'public metadata avoids duplicated archive manifest')
         bytecode = request('GET', base+'/versions/1.0.0/artifacts/bytecode')[2]
         with tarfile.open(work/'1.0.0-bytecode.sputnikpkg') as archive:
             build = json.load(archive.extractfile('meta/build.json'))
@@ -197,14 +195,14 @@ def run_regressions(ctx):
         reset_rate()
         arch = 'aarch64' if platform.machine() in ('arm64','aarch64') else 'x86_64'
         mac = platform.system() == 'Darwin'
-        target = '[target]\nos='+json.dumps('macos' if mac else 'linux')+'\narch='+json.dumps(arch)+'\n'
+        target = {'target': {'os': 'macos' if mac else 'linux', 'arch': arch}}
         if mac:
-            target += 'min_os="13.0"\n'
+            target['target']['min_os'] = '13.0'
         else:
-            target += 'libc='+json.dumps('musl' if platform.libc_ver()[0] == 'musl' else 'gnu')+'\n'
+            target['target']['libc'] = 'musl' if platform.libc_ver()[0] == 'musl' else 'gnu'
         native_files = {'main.s':'package test.demo\nexport answer\ndef answer(): 42\n', 'answer.c':'int demo_answer(void) { return 42; }\n'}
         native_source = custom_package('test/demo', '10.1.2', 'native-source', native_files,
-            target+'[[native]]\nname="demo_native"\nlanguage="c"\nsources=["answer.c"]\n')
+            {**target, 'native': [{'name': 'demo_native', 'language': 'c', 'sources': ['answer.c']}]})
         check(validate(native_source, '10.1.2', 'native-source').get('reason_code') == 'NATIVE_GRANT_REQUIRED', 'native payload requires explicit admission grant')
         op('grant', account_id=ctx['account']['account_id'], kind='native', target='test/demo')
         check(validate(native_source, '10.1.2', 'native-source')['state'] == 'published', 'granted native source publishes')
@@ -218,11 +216,11 @@ def run_regressions(ctx):
         compiler = subprocess.run(['clang']+flags+[str(native_dir/'answer.c'),'-o',str(native_dir/library)], capture_output=True, text=True)
         check(compiler.returncode == 0, 'build real prebuilt regression library: '+compiler.stderr[-400:])
         prebuilt = custom_package('test/demo', '10.1.3', 'prebuilt', {'main.s':native_files['main.s'], library:(native_dir/library).read_bytes()},
-            target+'[[native]]\nname="demo_native"\nkind="prebuilt"\nlibrary='+json.dumps(library)+'\nsputnik_ext_abi=1\n')
+            {**target, 'native': [dict(name='demo_native',kind='prebuilt',library=library,sputnik_ext_abi=1)]})
         check(validate(prebuilt, '10.1.3', 'prebuilt')['state'] == 'published', 'prebuilt library publishes without loading')
         native = request('GET', base+'/versions/10.1.3/artifacts/prebuilt')[2]
         check(native['native_mode'] == 'prebuilt' and native['compatibility']['sputnik_ext_abi'] == 1, 'prebuilt wire compatibility schema')
-        provider_extra = target+'[[native_providers]]\nid="fixture-runtime"\nkind="runtime"\nversion="1.0.0"\nabi="fixture-1"\nbuild_id="sha256:'+'a'*64+'"\nfiles=["data/runtime.bin"]\nlibrary_dirs=["data"]\n'
+        provider_extra = {**target, 'native_providers': [dict(id='fixture-runtime',kind='runtime',version='1.0.0',abi='fixture-1',build_id='sha256:'+'a'*64,files=['data/runtime.bin'],library_dirs=['data'])]}
         provider = custom_package('test/provider', '1.0.0', 'runtime', {'data/runtime.bin':'runtime resources'}, provider_extra, modules=False)
         op('grant', account_id=ctx['account']['account_id'], kind='native', target='test/provider')
         check(validate(provider, '1.0.0', 'runtime', ref='test/provider')['state'] == 'published', 'native-only provider publishes without dummy module')
@@ -283,8 +281,8 @@ def run_regressions(ctx):
         for index in range(1800):
             name = 'test.'+'x'*210+'.m'+str(index); filename = 'm'+str(index)+'.s'
             (source/filename).write_text('package '+name+'\nexport answer\ndef answer(): 42\n')
-            modules.append('[[modules]]\nname="'+name+'"\nsource="'+filename+'"\n')
-        (source/'sputnik.toml').write_text('schema="sputnik.package-manifest.v1"\n[package]\nname="test/demo"\nversion="10.4.0"\nroot="test.'+'x'*210+'.m0"\n[artifact]\nvariant="source"\n'+''.join(modules))
+            modules.append((filename, name))
+        write_source_manifest(source, 'test/demo', '10.4.0', 'source', dict(modules), [p for p,n in modules])
         artifact = work/'large-regression.sputnikpkg'
         built = subprocess.run([str(ctx['SDK']), 'pkg', 'build', str(source), '--out', str(artifact)], capture_output=True, text=True)
         check(built.returncode == 0, 'SDK builds large valid manifest')
@@ -298,17 +296,18 @@ def run_regressions(ctx):
         fetch = invoke('fetch',
             ['--origin', f'http://127.0.0.1:{ctx["port"]}', '--credentials', str(ctx['credentials']), '--ref', 'test/demo', '--version', '10.4.0', '--variant', 'source', '--out', str(work/'large-regression-fetched.sputnikpkg')])
         check(fetch.returncode == 0 and (work/'large-regression-fetched.sputnikpkg').read_bytes() == large, 'CLI fetch succeeds for formerly oversized metadata')
-        # Increase path duplication while leaving common declarations under 768 KiB.
+        # Increase path duplication while leaving the canonical build manifest
+        # under 1 MiB and common declarations under 768 KiB.
         long_source = work/'oversized-regression'; long_source.mkdir()
         modules = []
-        for index in range(1800):
+        for index in range(1500):
             name = 'test.'+'x'*210+'.m'+str(index); filename = 'p'*190+str(index)+'.s'
             (long_source/filename).write_text('package '+name+'\nexport answer\ndef answer(): 42\n')
-            modules.append('[[modules]]\nname="'+name+'"\nsource="'+filename+'"\n')
-        (long_source/'sputnik.toml').write_text('schema="sputnik.package-manifest.v1"\n[package]\nname="test/demo"\nversion="10.4.1"\nroot="test.'+'x'*210+'.m0"\n[artifact]\nvariant="source"\n'+''.join(modules))
+            modules.append((filename, name))
+        write_source_manifest(long_source, 'test/demo', '10.4.1', 'source', dict(modules), [p for p,n in modules])
         oversized = work/'oversized-regression.sputnikpkg'
         result = subprocess.run([str(ctx['SDK']), 'pkg', 'build', str(long_source), '--out', str(oversized)], capture_output=True, text=True)
-        check(result.returncode == 0, 'SDK builds artifact with oversized exact descriptor')
+        check(result.returncode == 0, 'SDK builds artifact with oversized exact descriptor: '+result.stderr[-400:])
         check(validate(oversized.read_bytes(), '10.4.1').get('reason_code') == 'METADATA_LIMIT', 'worker rejects oversized final descriptor before publication')
 
         # Fault and quota boundaries use SQL setup, with restoration after each.
@@ -335,7 +334,7 @@ def run_regressions(ctx):
             result = request('GET', path)[2]
             check(result['state'] == 'rejected' and result['reason_code'] == expected, 'worker rejects wrong archive identity')
             retry = create(payload, ver=version); check(retry[0] == 201, 'rejection frees variant reservation'); cancel(retry[2])
-        conflict = fixture(ver='1.0.0', var='conflict', extra='[dependencies]\n"test/base"="1.0.0"\n')
+        conflict = fixture(ver='1.0.0', var='conflict', extra={'dependencies': {'test/base': '1.0.0'}})
         session = create(conflict, var='conflict')[2]; path = '/api/v1/publish-sessions/'+session['id']
         upload(session['id'], conflict); request('POST', path+'/commit', {}); run('worker-once')
         check(request('GET', path)[2].get('reason_code') == 'RELEASE_METADATA_CONFLICT', 'variant cannot change common release declarations')

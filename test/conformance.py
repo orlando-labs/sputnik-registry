@@ -62,7 +62,7 @@ def admission(t):
     files={'main.s':'package test.contract\nexport answer\ndef answer(): 42\n',name:library}
     for bundle in ['none','runtime']:
         ref='test/provider_'+bundle
-        payload=t.artifact('1.0.0',ref=ref,fields='bundle="'+bundle+'"\n',extra=target+provider,files=files)
+        payload=t.artifact('1.0.0',ref=ref,fields={'bundle': bundle},extra={**target, **provider},files=files)
         state=t.publish(payload,'1.0.0',ref=ref)
         t.check(state.get('reason_code')=='NATIVE_GRANT_REQUIRED','library provider requires native grant '+bundle)
         t.op('grant',account_id=t.ctx['account']['account_id'],kind='native',target=ref)
@@ -73,12 +73,12 @@ def admission(t):
         compact=t.request('GET',base+'/index')[2]['versions'][0]['artifacts'][0]
         t.check(metadata['native_payload'] and metadata['native_mode']=='prebuilt' and compact['native_payload'],'provider facts survive exact and compact metadata')
     # A manifest mismatch must win over a hostile later member: proves early admission.
-    payload=t.artifact('21.1.0',fields='limit_profile="native-large"\n')
+    payload=t.artifact('21.1.0',fields={'limit_profile': 'native-large'})
     with tarfile.open(fileobj=io.BytesIO(payload)) as archive:
-        manifest=archive.extractfile('sputnik.toml').read()
+        manifest=archive.extractfile('sputnik.build.json').read()
     malformed=io.BytesIO()
     with tarfile.open(fileobj=malformed,mode='w:gz') as archive:
-        item=tarfile.TarInfo('sputnik.toml'); item.size=len(manifest); archive.addfile(item,io.BytesIO(manifest))
+        item=tarfile.TarInfo('sputnik.build.json'); item.size=len(manifest); archive.addfile(item,io.BytesIO(manifest))
         item=tarfile.TarInfo('../hostile'); item.size=1; archive.addfile(item,io.BytesIO(b'x'))
     state=t.publish(malformed.getvalue(),'21.1.0')
     t.check(state.get('reason_code')=='INVALID_ARTIFACT','standard session rejects a larger inspector profile')
@@ -86,13 +86,13 @@ def admission(t):
     for section in ['dependencies','artifact.dependencies','artifact.build-dependencies']:
         for ref,version,code in [('test/sdk','not-semver','INVALID_VERSION'),('UPPER/sdk','1.0.0','INVALID_REFERENCE')]:
             ver='21.2.'+str(admission.counter); admission.counter+=1
-            payload=t.artifact(ver,extra='['+section+']\n'+json.dumps(ref)+'='+json.dumps(version)+'\n')
+            payload=t.artifact(ver,extra={section: {ref: version}})
             t.check(t.publish(payload,ver).get('reason_code')==code,'validate '+section+' '+code)
-    payload=t.artifact('21.2.10',extra='[dependencies]\n"test/sdk"="1.0.0"\n[artifact.build-dependencies]\n"test/sdk"="2.0.0"\n')
+    payload=t.artifact('21.2.10',extra={'dependencies': {'test/sdk': '1.0.0'}, 'artifact': {'build-dependencies': {'test/sdk': '2.0.0'}}})
     t.check(t.publish(payload,'21.2.10').get('reason_code')=='DEPENDENCY_CONFLICT','combined exact dependency conflict')
     for count in [256,257]:
         ver='21.2.'+str(count)
-        extra='[artifact.build-dependencies]\n'+''.join('"test/d'+str(i)+'"="1.0.0"\n' for i in range(count))
+        extra={'artifact': {'build_dependencies': {'test/d'+str(i): '1.0.0' for i in range(count)}}}
         result=t.publish(t.artifact(ver,extra=extra),ver)
         t.check(result['state']=='published' if count==256 else result.get('reason_code')=='METADATA_LIMIT','combined dependency budget '+str(count))
 admission.counter=0
@@ -193,7 +193,7 @@ def access_and_budgets(t):
         t.error(t.create(payload,'23.0.0',limit_profile='native-large'),403,'FORBIDDEN','enabled native-large still requires grant')
         exact='test/native_large_exact'
         t.op('grant',account_id=account,kind='native-large',target=exact)
-        large_payload=t.artifact('1.0.0',ref=exact,fields='limit_profile="native-large"\n')
+        large_payload=t.artifact('1.0.0',ref=exact,fields={'limit_profile': 'native-large'})
         published=t.publish(large_payload,'1.0.0',ref=exact,limit_profile='native-large')
         t.check(published['state']=='published','exact native-large grant covers upload, commit and promotion')
         t.error(t.create(payload,'23.0.0',limit_profile='native-large'),403,'FORBIDDEN','exact native-large grant cannot authorize another package')

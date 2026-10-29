@@ -39,8 +39,8 @@ def main():
     modules.push!({name: "sdk." + name, path: sdk + "/packages/system_io/src/" + name + ".s"})
   includes = [sdk, sqlite + "/native"]
   directories = [sdk + "/build"]
-  ["openssl", "libarchive"].each |package_name|:
-    folder = if package_name == "openssl" then "openssl@3" else package_name
+  ["openssl", "libarchive", "libpcre2-8"].each |package_name|:
+    folder = if package_name == "openssl" then "openssl@3" else if package_name == "libpcre2-8" then "pcre2" else package_name
     prefix = ["/opt/homebrew/opt/" + folder, "/usr/local/opt/" + folder].find |path|:
       fs.exists?(path) and fs.dir?(path)
     if prefix:
@@ -53,7 +53,7 @@ def main():
         directories.push!(flag.slice(2...flag.length))
   native_sources = [sdk + "/packages/system_io/native/system_io.cpp"]
   extensions = [
-    {name: "system_io", language: "c++", sources: native_sources, include_dirs: includes, library_dirs: directories, cxxflags: ["-std=c++17"], link_libraries: ["sputnik", "archive", "z", "ssl", "crypto"]},
+    {name: "system_io", language: "c++", sources: native_sources, include_dirs: includes, library_dirs: directories, cxxflags: ["-std=c++17"], link_libraries: ["sputnik", "archive", "z", "ssl", "crypto", "pcre2-8"]},
     {name: "sqlite3", language: "c", sources: [sqlite + "/native/sqlite3_ext.c", sqlite + "/native/sqlite3.c"], headers: [sqlite + "/native/sqlite3.h"], defines: ["SQLITE_THREADSAFE=1", "SQLITE_ENABLE_COLUMN_METADATA=1", "SQLITE_DQS=0", "SQLITE_OMIT_LOAD_EXTENSION=1"]}
   ]
   manifest = {schema: "sputnik.build.v1", name: "registry", root: "registry", profiles: {required: ["core.v1", "macro.v1", "ffi.v1"], optional: [], forbidden: []}, modules: modules, native_extensions: extensions}

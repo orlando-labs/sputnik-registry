@@ -18,7 +18,7 @@ for archive in sorted(out.glob('macos-aarch64-*/*.sputnikpkg')):
  call('install',[cli,'pkg','install',archive,'--allow-native']+(['--build-from-source'] if '-source-' in variant else []))
  fixture=work/'fixture';fixture.mkdir()
  (fixture/'main.s').write_text('package tests.file\nexport value\ndef value(): 42\n')
- (fixture/'sputnik.toml').write_text('schema="sputnik.package-manifest.v1"\n[package]\nname="tests/file"\nversion="1.0.0"\nroot="tests.file"\n[[modules]]\nname="tests.file"\nsource="main.s"\n')
+ (fixture/'sputnik.build.yaml').write_text('schema: "sputnik.build.v1"\nname: "tests/file"\nversion: "1.0.0"\nsource_root: "."\nfiles:\n  - "main.s"\nmodule_names:\n  main.s: "tests.file"\n')
  def make_root(name):
   root=work/name;root.mkdir();outside=work/(name+'-outside');outside.mkdir();(outside/'secret').write_text('must survive');(root/'folder').mkdir();(root/'linked').symlink_to(outside,target_is_directory=True);(root/'symlink').symlink_to(outside/'secret')
   call(name+'-source-fixture',[cli,'pkg','build',fixture,'--out',root/'archive.sputnikpkg'])

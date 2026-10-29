@@ -127,7 +127,7 @@ R0 должен зафиксировать проверенные revisions и d
 | `plot` | `plot` | `plot` | Manifest identity, не имя repository |
 | language `packages/progressbar` | `progressbar` | `progressbar` | Source install требует версии; первый smoke |
 
-В `orbit-orm/sputnik.toml` dependency называется `orm`, тогда как
+В `orbit-orm/sputnik.build.yaml` dependency называется `orm`, тогда как
 build manifest ORM объявляет `orm`. Это реальная несогласованность identity,
 её нельзя маскировать alias на сервере. В R0 выбирается одно имя и согласованно
 обновляются manifests/locks/examples. При текущем manifest естественное имя — `orm`.

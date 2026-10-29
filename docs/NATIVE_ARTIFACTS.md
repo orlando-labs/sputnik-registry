@@ -56,7 +56,7 @@ variant требует явного выбора build, а не скрытого
 ## 2. Состав platform artifact
 
 ```text
-sputnik.toml
+sputnik.build.json
 checksums.sha256
 src/example.s
 bytecode/internal.sputnikbc
@@ -78,62 +78,65 @@ Static-library-only distribution требует отдельного linker cons
 
 Пример manifest с prebuilt extension:
 
-```toml
-schema = "sputnik.package-manifest.v1"
-
-[package]
-name = "slowpilot/example"
-version = "1.2.0"
-root = "slowpilot.example"
-
-[artifact]
-variant = "macos-aarch64-cpu"
-limit_profile = "standard"
-bundle = "runtime"
-
-[target]
-os = "macos"
-arch = "aarch64"
-min_os = "13.0"
-cpu_features = []
-compute_backend = "none"
-
-[[modules]]
-name = "slowpilot.example"
-source = "src/example.s"
-
-[[native]]
-name = "example_ext"
-kind = "prebuilt"
-library = "lib/example_ext.dylib"
-sputnik_ext_abi = 1
-required_runtime_features = []
-requirements = ["compute"]
-
-[native.symbols]
-"slowpilot.example.compute" = "example_compute"
-
-[[native_requirements]]
-id = "compute"
-kind = "runtime"
-version = "1.0.0"
-abi = "compute-c-1"
-provider = "bundled"
-
-[[native_providers]]
-id = "compute"
-kind = "runtime"
-version = "1.0.0"
-abi = "compute-c-1"
-build_id = "sha256:<provider-build-id>"
-library_dirs = ["lib/vendor"]
-link_libraries = ["compute"]
-
-[[native_providers.libraries]]
-name = "compute"
-path = "lib/vendor/libcompute.dylib"
-role = "dependency"
-abi = "compute-c-1"
+```yaml
+schema: "sputnik.build.v1"
+name: "slowpilot/example"
+version: "1.2.0"
+source_root: "."
+profiles:
+  required:
+    - "core.v1"
+    - "ffi.v1"
+files:
+  - "src/example.s"
+  - "lib/example_ext.dylib"
+module_names:
+  "src/example.s": "slowpilot.example"
+artifact:
+  variant: "macos-aarch64-cpu"
+  limit_profile: "standard"
+  bundle: "runtime"
+target:
+  os: "macos"
+  arch: "aarch64"
+  min_os: "13.0"
+  cpu_features: []
+  compute_backend: "none"
+native_requirements:
+  -
+      id: "compute"
+      kind: "runtime"
+      version: "1.0.0"
+      abi: "compute-c-1"
+      provider: "bundled"
+native_providers:
+  -
+      id: "compute"
+      kind: "runtime"
+      version: "1.0.0"
+      abi: "compute-c-1"
+      build_id: "sha256:<provider-build-id>"
+      library_dirs:
+        - "lib/vendor"
+      link_libraries:
+        - "compute"
+      libraries:
+        -
+            name: "compute"
+            path: "lib/vendor/libcompute.dylib"
+            role: "dependency"
+            abi: "compute-c-1"
+native_extensions:
+  -
+      name: "example_ext"
+      kind: "prebuilt"
+      library: "lib/example_ext.dylib"
+      sputnik_ext_abi: 1
+      required_runtime_features: []
+      requirements:
+        - "compute"
+      symbols:
+        slowpilot.example.compute: "example_compute"
 ```
 
 `kind = source` оставляет source/header/build declarations. `kind = prebuilt`
