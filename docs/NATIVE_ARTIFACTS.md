@@ -158,7 +158,7 @@ Native build самого приложения по-прежнему может 
 | libc | Linux binary: `gnu` либо `musl`, не взаимозаменяемы |
 | min_libc | Минимальная version выбранной libc; для GNU также actual symbol-version requirements |
 | cpu_features | Canonical set, должен быть subset реально доступных CPU+OS process features |
-| compute_backend | `none` для независимых libraries, иначе `cpu`, `mps`, `cuda` |
+| compute_backend | `none` для независимых libraries, иначе `cpu`, `mps`, `cuda`, `rocm` |
 | runtime requirements | Versioned names/ABI IDs внешних runtimes, providers и driver requirements |
 
 Any/any допустим для source/pure-bytecode variant. Variant с prebuilt machine
