@@ -320,7 +320,7 @@ class Service:
     root = @store.root
     observer = |success, bytes|:
       completed(root, artifact, success, bytes)
-    orbit.stream(headers: headers, length: artifact[:size], on_complete: observer) |body|:
+    orbit.stream(headers: headers, length: artifact[:size], on_complete: &observer) |body|:
       input = storage.File(@store.root, hash, "read", 0)
       try:
         while bytes = input.read(): body.write(bytes)
