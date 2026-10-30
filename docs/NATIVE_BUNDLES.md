@@ -177,11 +177,15 @@ trust/quarantine и size limits; специального сервиса LibTorc
 
 ## 6. Selection, lock и один runtime в процессе
 
-Selection сначала применяет пользовательскую bundle policy (`none` по
-умолчанию), затем source/prebuilt, target/backend и ABI/provider constraints.
+Selection сначала применяет пользовательскую bundle policy (`auto` по
+умолчанию; `artifact.bundle` у создаваемого архива по-прежнему `none`), затем
+source/prebuilt, target/backend и ABI/provider constraints.
 Иначе thin и bundled prebuilt с одинаковым target дают необъяснимый tie.
-Bundle policy не имеет hidden fallback: недоступный thin provider не разрешает
-внезапно скачать большой bundle; `--bundle runtime` не включает SDK.
+При `auto` совместимый готовый runtime предпочтительнее source adapter; native и
+large-profile пакеты по-прежнему требуют соответствующих разрешений. Явный
+`--bundle none` исключает runtime/SDK bundles, `--bundle runtime` не включает SDK.
+Импорт выбирает из установленных вариантов и не скачивает/не собирает пакет.
+Lock необязателен: он фиксирует точный вариант и хэш для воспроизводимости.
 `--variant` по-прежнему не отключает compatibility checks.
 
 Lock v1 фиксирует profile, exact runtime/build edges, provider delivery,
