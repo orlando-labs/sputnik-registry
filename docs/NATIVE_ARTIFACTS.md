@@ -131,7 +131,7 @@ native_extensions:
       name: "example_ext"
       kind: "prebuilt"
       library: "lib/example_ext.dylib"
-      sputnik_ext_abi: 1
+      sputnik_version: "1.0.0"
       required_runtime_features: []
       requirements:
         - "compute"
@@ -222,7 +222,7 @@ C++/LibTorch/CUDA compatibility задаётся ABI ids и runtime requirements
 два пакета требуют несовместимые ABI providers одного process-wide runtime,
 resolution завершается `NATIVE_ABI_CONFLICT`; нельзя загрузить случайную версию
 из глобального library search path. Bundled libs не имеют обязательного
-`sputnik_ext_abi_version` export: он требуется только extension entry library.
+`sputnik_language_version` export: он требуется только extension entry library.
 
 ## 5. Selection и fallback
 
@@ -296,7 +296,7 @@ Network native package требует `--allow-native` на установку. 
 `--grant ffi`/notebook native trust остаётся отдельным условием загрузки.
 Перед runtime load повторно проверяются file hashes, paths/containment, current
 host ABI и dependency closure; изменение descriptor/files не вызывает rebuild.
-После разрешённого dlopen вызывается existing `sputnik_ext_abi_version`, проверяются
+После разрешённого dlopen вызывается existing `sputnik_language_version`, проверяются
 symbols/types/leaf descriptors. Constructors при dlopen уже могут исполниться,
 поэтому package signatures/ABI checks не заменяют explicit native trust.
 
@@ -365,3 +365,5 @@ Sputnik variant ids, selection, limits и publish rules выше — решен�
 проекта, не заимствованный wheel protocol. Existing Sputnik ext ABI и loader
 проверены по [header](../../sputnik-lang/runtime/sputnik_ext.h) и
 [load path](../../sputnik-lang/tools/sputnik/main.cpp).
+
+The native extension entry point returns a SemVer string from `SPUTNIK_VERSION`; extension compatibility is part of language/VM SemVer, with no independent ABI version. Incompatible extension changes require a major language release.

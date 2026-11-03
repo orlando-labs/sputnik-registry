@@ -37,7 +37,7 @@ def rewrite(text):
 
 def manifest(data):
     package = data['package']
-    result = dict(schema='sputnik.build.v1', **package, source_root='src')
+    result = dict(schema='sputnik.build.v1', **package, source_root='src', requires=data.get('requires', {'sputnik': '>=1.0.0 <2.0.0'}))
     result.pop('root', None)
     files = list(data.get('files', {}).get('include', []))
     names = {}
@@ -86,12 +86,16 @@ p.add_argument('--platform',choices=['macos-aarch64','linux-x86_64-gnu'],default
 p.add_argument('--native',choices=['source','prebuilt'],default='source')
 p.add_argument('--modules',choices=['source','bytecode','mixed'],default='source')
 a=p.parse_args(); config=a.config.resolve(); cfg=json.loads(config.read_text()); repo=config.parent.parent
+sputnik_version=subprocess.check_output([str(a.sputnik), '--version'], text=True).strip().removeprefix('sputnik ')
+version_header=(SDK_ROOT/'runtime/version.h').read_text()
+header_version='.'.join(re.search(r'^#define SPUTNIK_VERSION_'+part+r' ([0-9]+)$', version_header, re.M).group(1) for part in ['MAJOR','MINOR','PATCH'])
+if sputnik_version != header_version: raise SystemExit('Sputnik compiler and SDK headers differ; rebuild the compiler before preparing a release')
 native=cfg.get('native',[])
 bundle=cfg.get('bundle','none')
 if a.native=='prebuilt' and bundle=='sdk':bundle='runtime'
 variant=(a.platform+'-'+a.native+'-' if native else '')+a.modules+('-'+bundle if bundle!='none' else '')
 work=a.out.resolve()/cfg['name']/variant; stage=work/'stage'; stage.mkdir(parents=True,exist_ok=True)
-data={'package':{'name':'slowpilot/'+cfg['name'],'version':cfg['version'],'root':scoped(cfg['root'])},'artifact':{'variant':variant},'target':{'os':'any','arch':'any'},'modules':[]}
+data={'requires':cfg.get('requires', {'sputnik': '>=1.0.0 <2.0.0'}),'package':{'name':'slowpilot/'+cfg['name'],'version':cfg['version'],'root':scoped(cfg['root'])},'artifact':{'variant':variant},'target':{'os':'any','arch':'any'},'modules':[]}
 seen=set()
 for src in cfg['sources']:
     for file in sorted(repo.glob(src)):
@@ -125,7 +129,7 @@ if native:
             dest=stage/pattern;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(repo/pattern,dest)
     if a.native=='prebuilt':
         lib=stage/'lib'/('lib'+cfg['name']+('.dylib' if a.platform.startswith('macos') else '.so'));lib.parent.mkdir(exist_ok=True)
-        shim=work/'abi.c';shim.write_text('#include "runtime/sputnik_ext.h"\n#if defined(__GNUC__)\n__attribute__((weak))\n#endif\nuint32_t sputnik_ext_abi_version(void) { return SPUTNIK_EXT_ABI_VERSION; }\n')
+        shim=work/'abi.c';shim.write_text('#include "runtime/sputnik_ext.h"\n#if defined(__GNUC__)\n__attribute__((weak))\n#endif\nconst char *sputnik_language_version(void) { return SPUTNIK_VERSION; }\n')
         objects=[]; compiler=os.environ.get('CXX','clang++' if a.platform.startswith('macos') else 'g++')
         for i,ext in enumerate(native):
             for j,src in enumerate(ext['sources']):
@@ -146,7 +150,7 @@ if native:
             run(['install_name_tool','-id','@rpath/'+lib.name,lib],work/'install-name.log')
             run(['codesign','--force','--sign','-',lib],work/'codesign.log')
         ext=copy.deepcopy(native[0]);ext={k:v for k,v in ext.items() if k in ['name','symbols','types','errors','blocking_symbols','required_runtime_features']}
-        ext.update(kind='prebuilt',library=lib.relative_to(stage).as_posix(),sputnik_ext_abi=1)
+        ext.update(kind='prebuilt',library=lib.relative_to(stage).as_posix(),sputnik_version=sputnik_version)
         if data.get('native_providers'):data['native_providers']=[p for p in data['native_providers'] if p['kind']=='runtime']
         if cfg.get('native_requirements'):
             data['native_requirements']=[r for r in data['native_requirements'] if r['kind']=='runtime'];ext['requirements']=[r['id'] for r in data['native_requirements']]

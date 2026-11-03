@@ -56,7 +56,7 @@ def main():
     {name: "system_io", language: "c++", sources: native_sources, include_dirs: includes, library_dirs: directories, cxxflags: ["-std=c++17"], link_libraries: ["sputnik", "archive", "z", "ssl", "crypto", "pcre2-8"]},
     {name: "sqlite3", language: "c", sources: [sqlite + "/native/sqlite3_ext.c", sqlite + "/native/sqlite3.c"], headers: [sqlite + "/native/sqlite3.h"], defines: ["SQLITE_THREADSAFE=1", "SQLITE_ENABLE_COLUMN_METADATA=1", "SQLITE_DQS=0", "SQLITE_OMIT_LOAD_EXTENSION=1"]}
   ]
-  manifest = {schema: "sputnik.build.v1", name: "registry", root: "registry", profiles: {required: ["core.v1", "macro.v1", "ffi.v1"], optional: [], forbidden: []}, modules: modules, native_extensions: extensions}
+  manifest = {schema: "sputnik.build.v1", requires: {sputnik: ">=1.0.0 <2.0.0"}, name: "registry", root: "registry", profiles: {required: ["core.v1", "macro.v1", "ffi.v1"], optional: [], forbidden: []}, modules: modules, native_extensions: extensions}
   path = output + "/registry.build.json"
   fs.atomic_write_text(path, Json.pretty_generate(manifest) + "\n")
   files = [sdk + "/build/sputnik", sdk + "/build/libsputnik.a", root + "/migrations/001.sql", root + "/migrations/002.sql", root + "/migrations/003.sql", path, sqlite + "/native/sqlite3_ext.c", sqlite + "/native/sqlite3.c", sqlite + "/native/sqlite3.h"] + native_sources

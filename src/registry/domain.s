@@ -9,10 +9,11 @@ class Error < Exception:
   attr message
   attr code
   attr status
-  def init(@code, @message, @status = 400)
+  attr suggestions
+  def init(@code, @message, @status = 400, @suggestions = null)
 
-def fail(code, message, status = 400):
-  raise Error(code, message, status)
+def fail(code, message, status = 400, suggestions = null):
+  raise Error(code, message, status, suggestions)
 
 def ident(): SecureRandom.hex(16)
 def sha(value): Digest.sha256(value.bytes).hex()

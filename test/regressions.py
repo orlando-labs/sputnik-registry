@@ -180,7 +180,7 @@ def run_regressions(ctx):
         exact = request('GET', base+'/versions/10.1.1/artifacts/cpu.v1')[2]
         compact = request('GET', base+'/versions/10.1.1')[2]['artifacts'][0]
         check(exact['target']['cpu_features'] == ['neon'] and exact['target']['compute_backends'] == ['cpu'], 'verified CPU/backend requirements survive facade')
-        check(exact['compatibility']['bytecode_versions'] == [] and exact['compatibility']['sputnik_ext_abi'] is None, 'source compatibility schema')
+        check(exact['compatibility']['sputnik_requirement'] == '>=1.0.0 <2.0.0' and exact['compatibility']['bytecode_versions'] == [] and exact['compatibility']['sputnik_versions'] == [], 'source compatibility schema')
         check(compact['compatibility'] == exact['compatibility'] and compact['bundle'] == exact['bundle'], 'compact metadata retains selection facts')
         check('archive_manifest_toml' not in exact and 'archive_manifest_json' not in exact, 'public metadata avoids duplicated archive manifest')
         bytecode = request('GET', base+'/versions/1.0.0/artifacts/bytecode')[2]
@@ -207,7 +207,7 @@ def run_regressions(ctx):
         op('grant', account_id=ctx['account']['account_id'], kind='native', target='test/demo')
         check(validate(native_source, '10.1.2', 'native-source')['state'] == 'published', 'granted native source publishes')
         native = request('GET', base+'/versions/10.1.2/artifacts/native-source')[2]
-        check(native['native_mode'] == 'source' and native['compatibility']['sputnik_ext_abi'] == 1, 'native-source compatibility carries verified extension ABI')
+        check(native['native_mode'] == 'source' and native['compatibility']['sputnik_versions'] == ['1.0.0'], 'native-source compatibility carries shared language version')
         # Only host compiler builds the test library. Registry inspection never loads it.
         native_dir = work/'native-regression'; native_dir.mkdir()
         (native_dir/'answer.c').write_text(native_files['answer.c'])
@@ -216,10 +216,10 @@ def run_regressions(ctx):
         compiler = subprocess.run(['clang']+flags+[str(native_dir/'answer.c'),'-o',str(native_dir/library)], capture_output=True, text=True)
         check(compiler.returncode == 0, 'build real prebuilt regression library: '+compiler.stderr[-400:])
         prebuilt = custom_package('test/demo', '10.1.3', 'prebuilt', {'main.s':native_files['main.s'], library:(native_dir/library).read_bytes()},
-            {**target, 'native': [dict(name='demo_native',kind='prebuilt',library=library,sputnik_ext_abi=1)]})
+            {**target, 'native': [dict(name='demo_native',kind='prebuilt',library=library,sputnik_version='1.0.0')]})
         check(validate(prebuilt, '10.1.3', 'prebuilt')['state'] == 'published', 'prebuilt library publishes without loading')
         native = request('GET', base+'/versions/10.1.3/artifacts/prebuilt')[2]
-        check(native['native_mode'] == 'prebuilt' and native['compatibility']['sputnik_ext_abi'] == 1, 'prebuilt wire compatibility schema')
+        check(native['native_mode'] == 'prebuilt' and native['compatibility']['sputnik_versions'] == ['1.0.0'], 'prebuilt wire compatibility schema')
         provider_extra = {**target, 'native_providers': [dict(id='fixture-runtime',kind='runtime',version='1.0.0',abi='fixture-1',build_id='sha256:'+'a'*64,files=['data/runtime.bin'],library_dirs=['data'])]}
         provider = custom_package('test/provider', '1.0.0', 'runtime', {'data/runtime.bin':'runtime resources'}, provider_extra, modules=False)
         op('grant', account_id=ctx['account']['account_id'], kind='native', target='test/provider')

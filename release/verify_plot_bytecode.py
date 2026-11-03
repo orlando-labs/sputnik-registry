@@ -3,8 +3,8 @@
 import argparse,json,os,shutil,subprocess
 from pathlib import Path
 exec(Path(__file__).with_name('prepare.py').read_text().split('p=argparse.ArgumentParser')[0])
-p=argparse.ArgumentParser();p.add_argument('--platform',default='macos-aarch64');a=p.parse_args()
-out=Path(__file__).resolve().parent/'out/plot';cli=ROOT/'sputnik-lang/build/sputnik';reports=[]
+p=argparse.ArgumentParser();p.add_argument('--platform',default='macos-aarch64');p.add_argument('--out',type=Path,default=Path(__file__).resolve().parent/'out');p.add_argument('--sputnik',type=Path,default=SDK_ROOT/'build/sputnik');a=p.parse_args()
+out=a.out.resolve()/'plot';cli=a.sputnik.resolve();reports=[]
 for archive in sorted(out.glob(a.platform+'-*-bytecode/*.sputnikpkg')):
  variant=archive.parent.name;work=out/'verification'/variant
  if work.exists():shutil.rmtree(work)

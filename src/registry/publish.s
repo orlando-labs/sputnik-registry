@@ -204,7 +204,7 @@ class Publisher:
       domain.validate_dependencies(manifest[:dependencies], descriptor[:dependencies], descriptor[:build_dependencies])
       modules = manifest[:modules].map |mod|:
         mod[:name]
-      common = {kind: manifest[:kind], root_module: manifest[:root_module], modules: modules, dependencies: manifest[:dependencies], capabilities: manifest[:capabilities]}
+      common = {requires: manifest[:requires], kind: manifest[:kind], root_module: manifest[:root_module], modules: modules, dependencies: manifest[:dependencies], capabilities: manifest[:capabilities]}
       common_json = canonical(common)
       fail("METADATA_LIMIT", "Release metadata too large") if common_json.bytes.count > 786432
       descriptor[:schema] = "sputnik.registry.artifact.v1"

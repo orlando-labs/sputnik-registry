@@ -9,6 +9,11 @@ def run_root_alias_contract(t):
     ref = 'test/root_contract'
     payload = t.artifact('1.0.0', ref=ref)
     t.check(t.publish(payload, '1.0.0', ref=ref)['state'] == 'published', 'root fixture publishes scoped')
+    missing = t.request('GET', '/api/v1/packages/root_contract')
+    t.error(missing, 404, 'NOT_FOUND', 'unpromoted short name returns package-not-found')
+    t.check(missing[2]['error']['suggestions'] == [ref], 'short name suggests exact scoped package')
+    absent = t.request('GET', '/api/v1/packages/missing_root_contract')
+    t.check(absent[2]['error']['suggestions'] == [], 'missing short name has no suggestions')
     result = t.invoke('promote', ['--ref', ref])
     t.check(result.returncode == 0 and json.loads(result.stdout) == dict(root_name='root_contract', package_ref=ref), 'operator console promotes published package')
     t.check(t.op('package-promote', package_ref=ref)['package_ref'] == ref, 'promotion is idempotent')

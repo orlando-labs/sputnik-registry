@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Compare public releases with verified archives and download every small artifact."""
-import hashlib,json,subprocess
+import argparse,hashlib,json,subprocess
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];out=Path(__file__).resolve().parent/'out'
+ROOT=Path(__file__).resolve().parents[2]
+p=argparse.ArgumentParser();p.add_argument('--out',type=Path,default=Path(__file__).resolve().parent/'out');a=p.parse_args();out=a.out.resolve()
 work=out/'public-verification';work.mkdir(parents=True,exist_ok=True)
 origin='https://registry.sputnik-lang.online';expected={}
 for archive in sorted(out.glob('*/*/*.sputnikpkg')):
  info=json.loads((archive.parent/'inspect.json').read_text())
  expected.setdefault((info['name'],info['version']),{})[info['variant']]=info
 def fetch(url,destination):
- subprocess.run(['curl','--fail','--silent','--show-error','--retry','2',url,'-o',str(destination)],check=True,timeout=180)
+ subprocess.run(['curl','--fail','--silent','--show-error','--retry','3','--retry-all-errors','--http1.1',url,'-o',str(destination)],check=True,timeout=180)
 reports=[]
 for (ref,version),variants in sorted(expected.items()):
  slug,name=ref.split('/');base=f'/api/v1/namespaces/{slug}/packages/{name}/versions/{version}'

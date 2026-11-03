@@ -62,7 +62,9 @@ class Service:
       headers = {"x-request-id": request_id}
       headers["www-authenticate"] = "Bearer" if error.status == 401
       headers["retry-after"] = "5" if error.status == 429 or error.status == 503
-      response({error: {code: error.code, message: error.message, request_id: request_id}}, error.status, headers)
+      detail = {code: error.code, message: error.message, request_id: request_id}
+      detail[:suggestions] = error.suggestions unless error.suggestions == null
+      response({error: detail}, error.status, headers)
     rescue JsonParseError:
       response({error: {code: "INVALID_JSON", message: "Invalid JSON document", request_id: request_id}}, 400, {"x-request-id": request_id})
     rescue Exception |error|:
@@ -148,7 +150,7 @@ class Service:
   def capabilities():
     profiles = {standard: domain.limits()["standard"]}
     profiles["native-large"] = domain.limits()["native-large"] if @store.config[:native_large]
-    result = {schema: "sputnik.registry.capabilities.v1", protocol: 1, features: ["scoped-references", "root-aliases", "exact-dependencies", "module-source", "module-bytecode", "artifact-variants", "prebuilt-native"], artifact_formats: ["sputnik.pkg.v1"], trust_profile: "private", read_access: @store.config[:read_access], registration: @store.config[:registration], login_providers: (if @login.enabled? then ["github"] else []), native_targets: [], limit_profiles: profiles, limits: {page_entries: 100, release_variants: 32, receiving_uploads_global: 2, receiving_uploads_account: 1, active_sessions_global: 64, active_sessions_account: 3}}
+    result = {schema: "sputnik.registry.capabilities.v1", protocol: 1, features: ["scoped-references", "root-aliases", "exact-dependencies", "language-semver", "module-source", "module-bytecode", "artifact-variants", "prebuilt-native"], artifact_formats: ["sputnik.pkg.v1"], trust_profile: "private", read_access: @store.config[:read_access], registration: @store.config[:registration], login_providers: (if @login.enabled? then ["github"] else []), native_targets: [], limit_profiles: profiles, limits: {page_entries: 100, release_variants: 32, receiving_uploads_global: 2, receiving_uploads_account: 1, active_sessions_global: 64, active_sessions_account: 3}}
 
     result[:features].push!("device-login") if @login.enabled?
     result
@@ -254,7 +256,12 @@ class Service:
         requested = ref
         ref = conn.scalar("SELECT ref FROM root_aliases WHERE name=?", params: [ref]) or ref
         pkg = conn.query_one("SELECT * FROM packages WHERE ref=?", params: [ref])
-        fail("NOT_FOUND", "Package not found", 404) unless pkg
+        unless pkg:
+          fail("NOT_FOUND", "Package not found", 404) if domain.scoped(requested)
+          suffix = "/" + requested
+          matches = conn.query("SELECT ref FROM packages WHERE substr(ref,-length(?))=? AND EXISTS(SELECT 1 FROM releases WHERE releases.ref=packages.ref AND quarantined=0 AND yanked=0) ORDER BY ref LIMIT 20", params: [suffix, suffix])
+          suggestions = matches.map |row|: row[:ref]
+          fail("NOT_FOUND", "Package not found", 404, suggestions)
         if tail.empty?:
           next response({package_ref: ref, requested_ref: requested, revision: pkg[:revision], owners: conn.query("SELECT account_id,role FROM owners WHERE ref=?", params: [ref])})
         if tail.count == 1 and tail[0] == "index":

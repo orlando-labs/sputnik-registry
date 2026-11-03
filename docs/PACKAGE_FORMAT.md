@@ -59,6 +59,8 @@ Dependencies других пакетов объявляются, но их files
 schema: "sputnik.build.v1"
 name: "slowpilot/example"
 version: "1.2.0"
+requires:
+  sputnik: ">=1.0.0 <2.0.0"
 source_root: "."
 files:
   - "src/example.s"
@@ -252,3 +254,7 @@ Native библиотечный путь опирается на [libarchive exa
 Gzip header/streaming controls описаны в [zlib manual](https://www.zlib.net/manual.html).
 Эти источники описывают базовые форматы/APIs; Sputnik layout/modes/limits выше —
 собственный design contract, не поведение библиотек по умолчанию.
+
+## Language and VM compatibility (1.0.0)
+
+`requires.sputnik` is a mandatory bounded SemVer range in published manifests. Unversioned local sources use the fixed 1.x baseline; packers write it explicitly. Old immutable archives without a requirement must be rebuilt as a new release. Source, bytecode and native variants share this requirement. Bytecode format 1.2 carries the producer language patch component. Native `sputnik_version` uses the same language/VM release rather than a separate extension ABI counter. Application locks record the exact language version; regenerate a legacy/different-version lock explicitly with `sputnik pkg lock`. See [language version contract](../../sputnik-lang/docs/engineering/language-version.md).

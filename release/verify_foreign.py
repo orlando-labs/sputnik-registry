@@ -3,9 +3,9 @@
 import argparse,json,os,re,shutil,subprocess,time
 from pathlib import Path
 exec(Path(__file__).with_name('prepare.py').read_text().split('p=argparse.ArgumentParser')[0])
-p=argparse.ArgumentParser();p.add_argument('bridge',choices=['pycall','rbcall']);p.add_argument('--platform',default='macos-aarch64');p.add_argument('--python',default='/opt/homebrew/bin/python3.14');p.add_argument('--native',action='store_true');a=p.parse_args()
-root=ROOT/a.bridge;out=Path(__file__).resolve().parent/'out'/a.bridge
-cli=ROOT/'sputnik-lang/build/sputnik';reports=[]
+p=argparse.ArgumentParser();p.add_argument('bridge',choices=['pycall','rbcall']);p.add_argument('--platform',default='macos-aarch64');p.add_argument('--python',default='/opt/homebrew/bin/python3.14');p.add_argument('--native',action='store_true');p.add_argument('--out',type=Path,default=Path(__file__).resolve().parent/'out');p.add_argument('--sputnik',type=Path,default=SDK_ROOT/'build/sputnik');a=p.parse_args()
+root=ROOT/a.bridge;out=a.out.resolve()/a.bridge
+cli=a.sputnik.resolve();reports=[]
 for archive in sorted(out.glob(a.platform+'-*/*.sputnikpkg')):
  variant=archive.parent.name
  work=out/'verification'/variant

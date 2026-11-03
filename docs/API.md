@@ -75,6 +75,9 @@ Capability response:
 ```
 
 Поле `latest` на package page informational; client выбирает версию по index.
+Если короткое имя не найдено, `404 NOT_FOUND` содержит `error.suggestions`.
+В массиве до 20 полных имён с тем же именем пакета и доступными релизами.
+Отсутствие совпадений обозначается пустым массивом.
 Read policy отделена от signing trust profile: default private deployment требует
 active account + `registry:read`; explicit `read_access=public` разрешает anonymous
 read опубликованных доступных packages. `/capabilities` не требует token;
@@ -135,7 +138,9 @@ Page ограничена также 1 MiB: server может вернуть м�
       "compatibility": {
         "bytecode_versions": [],
         "profiles": [],
-        "sputnik_ext_abi": 1
+        "sputnik_requirement": ">=1.0.0 <2.0.0",
+        "bytecode_languages": [],
+        "sputnik_versions": ["1.0.0"]
       },
       "signatures": []
     }
@@ -358,3 +363,5 @@ Unknown response fields допускаются клиентом; required fields
 schema version и limits проверяются. До первого фактического применения
 breaking changes включаются в v1; после фиксации опубликованного contract
 несовместимое изменение требует отдельного решения о версии.
+
+Language compatibility uses the shared compiler/VM SemVer release. Every compact artifact advertises `compatibility.sputnik_requirement`, verified from `requires.sputnik`. `bytecode_languages` and native `sputnik_versions` contain producer SemVer strings. Clients check all of these before selection/download. Legacy artifacts without a requirement are ineligible. Release common metadata includes `requires`; variants cannot disagree about the language requirement.
