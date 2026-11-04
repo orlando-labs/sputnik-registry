@@ -190,6 +190,7 @@ def inspect(path, key, profile):
     representations = manifest[:module_representations].map |row|:
       {name: row[0], representation: row[1], path: row[2], sha256: "sha256:" + row[3]}
     descriptor = {limit_profile: manifest[:limit_profile], kind: manifest[:kind], bundle: manifest[:bundle], dependencies: dependencies, build_dependencies: build_dependencies, target: manifest[:target], compatibility: facts[:compatibility], module_representations: representations, native_mode: mode, native_payload: manifest[:native_payload]}
+    descriptor[:install_options] = manifest[?:install_options] or []
     Json.generate({distribution: facts[:distribution], manifest: manifest, descriptor: descriptor})
   ensure:
     file.close() if file

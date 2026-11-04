@@ -134,7 +134,11 @@ def main():
         check(request('GET','/api/v1/packages',auth=None)[0]==401,'anonymous reads denied')
         check(request('GET','/api/v1/me')[2]['account']['id']==account['account_id'],'bearer identity')
         check(request('POST','/api/v1/publish-sessions',{'unexpected':1})[0]==400,'unknown fields rejected')
-        payload=fixture()
+        install_options=[dict(name='library-dir', type='path', env='DEMO_LIBRARY_DIR',
+                              description='Directory containing the runtime libraries.',
+                              default='/opt/demo/lib', probe='demo.so', choices=[],
+                              search={'linux':['/usr/local/lib/demo']})]
+        payload=fixture(extra={'install_options':install_options})
         key=secrets.token_hex(16)
         first=create(payload,key=key)
         check(first[0]==201,'first reservation')
@@ -152,6 +156,9 @@ def main():
         run('worker-once')
         status=request('GET','/api/v1/publish-sessions/'+id)[2]
         check(status['state']=='published','verified publication: '+str(status))
+        metadata=request('GET',base+'/versions/1.0.0')[2]
+        check(metadata['artifacts'][0]['install_options']==install_options,
+              'catalog preserves install parameters from the published manifest')
         check(create(payload)[0]==409,'published variant immutable')
         url=base+'/versions/1.0.0/artifacts/source/download'
         downloaded=request('GET',url,raw=True)

@@ -55,7 +55,7 @@ def variant(value):
   value
 
 def compact_artifact(metadata, quarantined = false):
-  {variant: metadata[:variant], kind: metadata[:kind], bundle: metadata[:bundle], target: metadata[:target], native_mode: metadata[:native_mode], native_payload: metadata[?"native_payload"] or false, dependencies: metadata[:dependencies], build_dependencies: metadata[:build_dependencies], compatibility: metadata[:compatibility], sha256: metadata[:sha256], size: metadata[:size], url: metadata[:url], quarantined: quarantined}
+  {variant: metadata[:variant], kind: metadata[:kind], bundle: metadata[:bundle], target: metadata[:target], native_mode: metadata[:native_mode], native_payload: metadata[?"native_payload"] or false, dependencies: metadata[:dependencies], build_dependencies: metadata[:build_dependencies], compatibility: metadata[:compatibility], install_options: metadata[?:install_options] or [], sha256: metadata[:sha256], size: metadata[:size], url: metadata[:url], quarantined: quarantined}
 
 def validate_dependencies(common, runtime, build):
   fail("METADATA_LIMIT", "Too many dependencies") if common.count + runtime.count + build.count > 256
