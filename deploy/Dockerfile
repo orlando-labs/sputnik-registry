@@ -56,7 +56,10 @@ COPY --from=test /src/sputnik-registry/migrations/ migrations/
 COPY --from=test /src/sputnik-registry/.build/inputs.json /src/sputnik-registry/.build/build-result.json \
     /src/sputnik-registry/.build/integration-native.json \
     /src/sputnik-registry/.build/native/registry.native.cpp.compile.json /src/SOURCE-MANIFEST.json evidence/
+# The source context can be extracted with a private umask.
+RUN chmod -R a+rX migrations/
 USER 10097:10097
+RUN for migration in migrations/*.sql; do test -r "$migration" || exit 1; done
 ENV SPUTNIK_REGISTRY_CONFIG=/etc/sputnik-registry/config.json MALLOC_ARENA_MAX=2
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
