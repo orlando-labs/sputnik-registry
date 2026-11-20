@@ -175,12 +175,16 @@ def run_regressions(ctx):
             cancel(result[2])
         for var in ['a'*129, '_cpu', '-cpu', '.', '..', 'a..b', 'a/b']:
             expect_error(create(payload, ver='10.1.0', var=var), 400, 'INVALID_VARIANT', 'reject variant '+var[:12])
-        dotted = fixture(ver='10.1.1', var='cpu.v1', extra={'target': {'os': 'macos', 'arch': 'aarch64', 'cpu_features': ['neon'], 'compute_backends': ['cpu']}})
+        requirement = '>=1.0.0 <2.0.0'
+        dotted = fixture(ver='10.1.1', var='cpu.v1', extra={
+            'requires': {'sputnik': requirement},
+            'target': {'os': 'macos', 'arch': 'aarch64', 'cpu_features': ['neon'], 'compute_backends': ['cpu']},
+        })
         publish(dotted, ver='10.1.1', var='cpu.v1')
         exact = request('GET', base+'/versions/10.1.1/artifacts/cpu.v1')[2]
         compact = request('GET', base+'/versions/10.1.1')[2]['artifacts'][0]
         check(exact['target']['cpu_features'] == ['neon'] and exact['target']['compute_backends'] == ['cpu'], 'verified CPU/backend requirements survive facade')
-        check(exact['compatibility']['sputnik_requirement'] == '>=1.0.0 <2.0.0' and exact['compatibility']['bytecode_versions'] == [] and exact['compatibility']['sputnik_versions'] == [], 'source compatibility schema')
+        check(exact['compatibility']['sputnik_requirement'] == requirement and exact['compatibility']['bytecode_versions'] == [] and exact['compatibility']['sputnik_versions'] == [], 'source compatibility schema')
         check(compact['compatibility'] == exact['compatibility'] and compact['bundle'] == exact['bundle'], 'compact metadata retains selection facts')
         check('archive_manifest_toml' not in exact and 'archive_manifest_json' not in exact, 'public metadata avoids duplicated archive manifest')
         bytecode = request('GET', base+'/versions/1.0.0/artifacts/bytecode')[2]
@@ -207,7 +211,8 @@ def run_regressions(ctx):
         op('grant', account_id=ctx['account']['account_id'], kind='native', target='test/demo')
         check(validate(native_source, '10.1.2', 'native-source')['state'] == 'published', 'granted native source publishes')
         native = request('GET', base+'/versions/10.1.2/artifacts/native-source')[2]
-        check(native['native_mode'] == 'source' and native['compatibility']['sputnik_versions'] == ['1.0.0'], 'native-source compatibility carries shared language version')
+        sdk_version = subprocess.check_output([str(ctx['SDK']), '--version'], text=True).split()[1]
+        check(native['native_mode'] == 'source' and native['compatibility']['sputnik_versions'] == [sdk_version], 'native-source compatibility carries shared language version')
         # Only host compiler builds the test library. Registry inspection never loads it.
         native_dir = work/'native-regression'; native_dir.mkdir()
         (native_dir/'answer.c').write_text(native_files['answer.c'])
