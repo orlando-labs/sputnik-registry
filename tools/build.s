@@ -65,7 +65,7 @@ def main():
   inputs = fingerprint(files)
   fs.atomic_write_text(output + "/inputs.json", Json.pretty_generate(inputs) + "\n")
   unless args[:manifest_only]:
-    command = ["build", path, "--target", "native", "--require-full-native", "--out-dir", output + "/native"]
+    command = ["build", path, "--target", "native-debug", "--require-full-native", "--out-dir", output + "/native"]
     ["ffi", "net.listen", "net.connect", "random.secure", "fs.read", "fs.write", "fs.metadata", "process.spawn", "process.signal"].each |grant|:
       command.push!("--grant")
       command.push!(grant)
