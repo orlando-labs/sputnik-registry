@@ -96,8 +96,16 @@ class Service:
         data = body(request, ["namespace", "token"], [], 8192)
         return response(@login.complete(id, request.header("authorization"), request.header("idempotency-key"), data), 201)
       fail("NOT_FOUND", "Unknown login endpoint", 404)
+    parts = path.split("/")
+    index = 0
+    if parts.count >= 5 and parts[3] == "packages":
+      index = 5
+    elif parts.count >= 7 and parts[3] == "namespaces" and parts[5] == "packages":
+      index = 7
+    tail = if index > 0 and index < parts.count then parts[index...parts.count] else []
+    public_read = read and @store.config[:read_access] == "public" and (path == "/api/v1/packages" or (index > 0 and package_catalog_read?(tail)))
     actor = null
-    if not read or @store.config[:read_access] == "authenticated" or request.header("authorization"):
+    if not public_read and (not read or @store.config[:read_access] == "authenticated" or request.header("authorization")):
       actor = @store.authenticate(request.header("authorization"))
     require_scope(actor, "registry:read") if read and actor
     bucket = if actor then "read:" + actor[:account_id] else "anonymous:" + (request.client_ip or "unknown")
@@ -133,19 +141,16 @@ class Service:
         result = @publisher.cancel(actor, id, request.header("idempotency-key"), data)
         return response(result[1], result[0])
     if path == "/api/v1/packages" and read: return search(request)
-    parts = path.split("/")
-    ref = null
-    index = 0
-    if parts.count >= 5 and parts[3] == "packages":
-      ref = reference(parts[4])
-      index = 5
-    elif parts.count >= 7 and parts[3] == "namespaces" and parts[5] == "packages":
-      ref = reference(parts[4] + "/" + parts[6])
-      index = 7
-    if ref:
-      tail = if index == parts.count then [] else parts[index...parts.count]
+    if index > 0:
+      ref = reference(if index == 5 then parts[4] else parts[4] + "/" + parts[6])
       return package_route(request, actor, ref, tail)
     fail("NOT_FOUND", "Unknown endpoint", 404)
+
+  def package_catalog_read?(tail):
+    return true if tail.empty? or tail == ["index"] or tail == ["stats", "downloads"]
+    return false unless tail[0] == "versions"
+    return true if tail.count == 2
+    tail.count >= 4 and tail[2] == "artifacts" and (tail.count == 4 or (tail.count == 5 and tail[4] == "download"))
 
   def capabilities():
     profiles = {standard: domain.limits()["standard"]}

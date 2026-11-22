@@ -7,8 +7,10 @@ import hmac
 import http.client
 import io
 import json
+import os
 import secrets
 import socket
+import subprocess
 import tarfile
 import time
 from urllib.parse import quote
@@ -162,6 +164,58 @@ def pagination(t):
     t.check(next_page['packages'][0]['ref']>search['packages'][0]['ref'],'search cursor advances')
 
 
+def public_catalog(t):
+    ref = 'test/public_install'
+    payload = t.artifact('1.0.0', ref=ref)
+    t.check(t.publish(payload, '1.0.0', ref=ref)['state'] == 'published', 'public install fixture publishes')
+    t.check(t.invoke('promote', ['--ref', ref]).returncode == 0, 'public install fixture has root alias')
+    account = t.ctx['account']['account_id']
+    expired = t.op('token-issue', account_id=account, label='expired-reader', scopes=['registry:read'])
+    t.sql('UPDATE tokens SET expires_at=0 WHERE id=?', (expired['id'],))
+    no_read = t.op('token-issue', account_id=account, label='write-only', scopes=['token:manage'])
+    root = '/api/v1/packages/public_install'
+    scoped = '/api/v1/namespaces/test/packages/public_install'
+    artifact = scoped + '/versions/1.0.0/artifacts/source'
+    search = '/api/v1/packages?query=public_install'
+    t.error(t.request('GET', root+'/index', auth=expired['token']), 401, 'UNAUTHORIZED', 'private catalog rejects expired credential')
+    t.error(t.request('GET', root+'/index', auth=no_read['token']), 403, 'FORBIDDEN', 'private catalog requires read scope')
+
+    t.restart(read_access='public')
+    try:
+        t.reset_rate()
+        for label, auth in [('anonymous', None), ('expired', expired['token']), ('invalid', 'invalid'),
+                            ('write-only', no_read['token']), ('authenticated', t.token)]:
+            for path in (search, root, root+'/index', scoped+'/index', scoped+'/versions/1.0.0', artifact):
+                t.check(t.request('GET', path, auth=auth)[0] == 200, label+' can read '+path)
+            download = artifact+'/download'
+            t.check(t.request('HEAD', download, auth=auth)[0] == 200, label+' can inspect download')
+            t.check(t.request('GET', download, auth=auth, raw=True)[2] == payload, label+' can download package')
+        t.check(t.sql("SELECT count(*) FROM rate_limits WHERE bucket LIKE 'read:%'")[0][0] == 0,
+                'public catalog uses anonymous limits even with a valid bearer')
+
+        for path in ('/api/v1/me', '/api/v1/me/usage', '/api/v1/tokens', scoped+'/stats/publications'):
+            for auth in (None, expired['token']):
+                t.error(t.request('GET', path, auth=auth), 401, 'UNAUTHORIZED', 'public mode protects '+path)
+        t.error(t.request('POST', '/api/v1/publish-sessions', {}, auth=expired['token']),
+                401, 'UNAUTHORIZED', 'public mode denies publishing with expired credentials')
+
+        origin = f'http://127.0.0.1:{t.port}'
+        home = t.work/'public-catalog-home'
+        credentials = home/'.sputnik'/'credentials'/(hashlib.sha256(origin.encode()).hexdigest()+'.json')
+        credentials.parent.mkdir(parents=True)
+        credentials.write_text(json.dumps(dict(origin=origin, token=expired['token'])))
+        credentials.chmod(0o600)
+        package_home = t.work/'public-catalog-packages'
+        env = dict(t.env, HOME=str(home), SPUTNIK_PKG_HOME=str(package_home), SPUTNIK_PKG_CREDENTIALS='')
+        args = [str(t.ctx['SDK']), 'pkg', 'install', 'public_install', '--registry', origin]
+        installed = subprocess.run(args, env=env, capture_output=True, text=True, timeout=120)
+        t.check(installed.returncode == 0, 'SDK installs with expired saved credentials: '+installed.stderr[-600:])
+        t.check((package_home/ref/'1.0.0'/'source'/'test-public_install-1.0.0.sputnikpkg').read_bytes() == payload,
+                'SDK stores the published archive bytes')
+    finally:
+        t.restart(read_access='authenticated')
+
+
 def access_and_budgets(t):
     t.reset_rate()
     for auth in ['invalid','spreg_'+'0'*64]:
@@ -230,6 +284,7 @@ def run_conformance(ctx):
         quota_owner(t)
         backup_lifecycle(t)
         pagination(t)
+        public_catalog(t)
         access_and_budgets(t)
         from root_alias_contract import run_root_alias_contract
         run_root_alias_contract(t)

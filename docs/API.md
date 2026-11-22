@@ -78,10 +78,13 @@ Capability response:
 Если короткое имя не найдено, `404 NOT_FOUND` содержит `error.suggestions`.
 В массиве до 20 полных имён с тем же именем пакета и доступными релизами.
 Отсутствие совпадений обозначается пустым массивом.
-Read policy отделена от signing trust profile: default private deployment требует
-active account + `registry:read`; explicit `read_access=public` разрешает anonymous
-read опубликованных доступных packages. `/capabilities` не требует token;
-`/me`, quota information и publication stats не становятся публичными.
+Для чтения каталога в режиме `read_access=authenticated` нужны активная
+учётная запись и разрешение `registry:read`. В режиме `read_access=public`
+поиск, метаданные пакетов и вариантов, скачивание и статистика скачиваний
+обрабатываются как анонимные запросы. Сервер игнорирует заголовок
+`Authorization` на этих маршрутах. `/capabilities` доступен в обоих режимах
+без авторизации. Публикация, `/me`, квоты и статистика публикаций требуют
+авторизации в обоих режимах.
 Scope/profile grants и точный usage schema — [ACCESS_AND_USAGE](ACCESS_AND_USAGE.md).
 `registration=closed|open` не выводится из read/trust policy; при включённом
 GitHub login `login_providers` содержит `github`. Provider secrets не публикуются.
